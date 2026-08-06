@@ -202,12 +202,12 @@ function Index() {
             <div className="flex items-center justify-center gap-2 md:justify-start">
               <Scissors className="h-5 w-5 text-primary" />
               <span className="text-display text-2xl leading-none">
-                Navalha <span className="text-primary">&</span> Brasa
+                Fabrício <span className="text-primary">Barbeiro</span>
               </span>
             </div>
             <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
-              Barbearia clássica com alma de bairro. Desde 2009 cuidando do visual
-              de quem valoriza os detalhes.
+              Corte, barba e barba terapia, pigmentação, luzes, alisamento e produtos
+              na Vila Operária, Escada/PE.
             </p>
           </div>
 
@@ -225,42 +225,51 @@ function Index() {
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 {ENDERECO}
               </a>
+              {BARBEIROS.map((b) => (
+                <a
+                  key={b.whatsapp}
+                  href={`https://wa.me/${b.whatsapp}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-3 text-muted-foreground transition-colors hover:text-primary md:justify-start"
+                >
+                  <Phone className="h-4 w-4 shrink-0 text-primary" /> {b.nome} ·{" "}
+                  {b.display}
+                </a>
+              ))}
               <a
-                href="https://wa.me/5511999999999"
+                href={`https://instagram.com/${INSTAGRAM}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-3 text-muted-foreground transition-colors hover:text-primary md:justify-start"
               >
-                <Phone className="h-4 w-4 shrink-0 text-primary" /> WhatsApp (11)
-                99999-9999
-              </a>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 text-muted-foreground transition-colors hover:text-primary md:justify-start"
-              >
-                <Instagram className="h-4 w-4 shrink-0 text-primary" /> @navalhaebrasa
+                <Instagram className="h-4 w-4 shrink-0 text-primary" /> @{INSTAGRAM}
               </a>
             </div>
           </div>
 
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground">
-              Horários
+              Horário de funcionamento
             </h3>
-            <div className="mt-6 space-y-2 text-sm text-muted-foreground">
-              <p>Terça a sexta · 09h – 20h</p>
-              <p>Sábado · 09h – 18h</p>
-              <p>Domingo e segunda · fechado</p>
+            <div className="mt-6 space-y-4 text-sm text-muted-foreground">
+              {HORARIO_FUNCIONAMENTO.map((h) => (
+                <div key={h.dias}>
+                  <p className="text-foreground">{h.dias}</p>
+                  {h.horas.map((x) => (
+                    <p key={x}>{x}</p>
+                  ))}
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
         <p className="mt-16 text-center text-xs uppercase tracking-[0.2em] text-muted-foreground/70">
-          © {new Date().getFullYear()} Navalha & Brasa. Todos os direitos reservados.
+          © {new Date().getFullYear()} Fabrício Barbeiro. Todos os direitos reservados.
         </p>
       </footer>
+
 
       {/* Botão flutuante */}
       <button
