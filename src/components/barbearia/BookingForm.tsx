@@ -29,7 +29,7 @@ export function BookingForm({ compact = false }: { compact?: boolean }) {
   const [enviado, setEnviado] = useState(false);
 
   const selecionado = SERVICOS.find((s) => s.nome === servico);
-  const profissional = BARBEIROS.find((b) => b.nome === barbeiro) ?? BARBEIROS[0];
+  const profissional = BARBEIROS.find((b) => b.nome === barbeiro) ?? BARBEIROS[0]!;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
