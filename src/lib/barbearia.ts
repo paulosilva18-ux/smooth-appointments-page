@@ -1,7 +1,8 @@
-export const BARBEIROS = [
+export const BARBEIROS: { nome: string; whatsapp: string; display: string }[] = [
   { nome: "Fabrício", whatsapp: "5581992022522", display: "(81) 99202-2522" },
   { nome: "Victor Paz", whatsapp: "5581989312949", display: "(81) 98931-2949" },
-] as const;
+];
+
 
 export const INSTAGRAM = "fabriciobarbeiro_oficial";
 export const ENDERECO = "Avenida Mário Leite, 1 — Vila Operária, Escada/PE";

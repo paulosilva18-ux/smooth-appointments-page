@@ -21,8 +21,9 @@ const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.2em] 
 
 export function BookingForm({ compact = false }: { compact?: boolean }) {
   const [nome, setNome] = useState("");
-  const [servico, setServico] = useState<string>(SERVICOS[0].nome);
-  const [barbeiro, setBarbeiro] = useState(BARBEIROS[0].nome);
+  const [servico, setServico] = useState<string>(SERVICOS[0]!.nome);
+  const [barbeiro, setBarbeiro] = useState<string>(BARBEIROS[0]!.nome);
+
   const [data, setData] = useState("");
   const [hora, setHora] = useState(HORARIOS[0]);
   const [enviado, setEnviado] = useState(false);
