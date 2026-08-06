@@ -114,14 +114,14 @@ function Index() {
           <div className="mx-auto mt-4 h-1 w-16 bg-primary" />
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {SERVICOS.map((s) => (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {CATEGORIAS.map((c) => (
             <article
-              key={s.nome}
+              key={c.nome}
               className="group relative overflow-hidden border border-border p-8 transition-colors hover:border-primary/50"
             >
               <img
-                src={s.img}
+                src={c.img}
                 alt=""
                 aria-hidden="true"
                 loading="lazy"
@@ -131,20 +131,51 @@ function Index() {
               />
               <div className="relative">
                 <h3 className="text-2xl transition-colors group-hover:text-primary">
-                  {s.nome}
+                  {c.nome}
                 </h3>
-                <p className="mt-3 text-sm text-muted-foreground">{s.desc}</p>
-                <div className="mt-6 flex items-baseline justify-between gap-3">
-                  <span className="text-lg font-bold text-primary">{s.preco}</span>
-                  <span className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" /> {s.tempo}
-                  </span>
-                </div>
+                <p className="mt-3 text-sm text-muted-foreground">{c.desc}</p>
               </div>
             </article>
           ))}
         </div>
       </section>
+
+      {/* Tabela de preços e tempos */}
+      <section
+        id="precos"
+        className="surface-grain border-y border-border bg-secondary/20 py-24"
+      >
+        <div className="mx-auto max-w-3xl px-5">
+          <div className="mb-12 text-center">
+            <h2 className="text-display text-5xl">Preços e tempos</h2>
+            <div className="mx-auto mt-4 h-1 w-16 bg-primary" />
+          </div>
+
+          <ul className="divide-y divide-border border-y border-border">
+            {SERVICOS.map((s) => (
+              <li
+                key={s.nome}
+                className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 py-5"
+              >
+                <div className="min-w-0">
+                  <h3 className="text-xl leading-tight">{s.nome}</h3>
+                  <p className="mt-1 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5 text-primary" /> {s.tempo}
+                  </p>
+                  {s.desc && (
+                    <p className="mt-2 max-w-md text-xs text-muted-foreground">{s.desc}</p>
+                  )}
+                </div>
+                <span className="text-xl font-bold text-primary">{s.preco}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            Alisamento e produtos: valores sob consulta no WhatsApp.
+          </p>
+        </div>
+      </section>
+
 
       {/* Agendamento */}
       <section
