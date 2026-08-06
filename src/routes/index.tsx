@@ -50,12 +50,15 @@ function Index() {
           <a href="#topo" className="flex min-w-0 items-center gap-2">
             <Scissors className="h-5 w-5 shrink-0 text-primary" />
             <span className="text-display truncate text-xl leading-none">
-              Navalha <span className="text-primary">&</span> Brasa
+              Fabrício <span className="text-primary">Barbeiro</span>
             </span>
           </a>
           <nav className="hidden items-center gap-8 text-sm uppercase tracking-[0.2em] text-muted-foreground md:flex">
             <a href="#servicos" className="transition-colors hover:text-primary">
               Serviços
+            </a>
+            <a href="#precos" className="transition-colors hover:text-primary">
+              Preços
             </a>
             <a href="#agendamento" className="transition-colors hover:text-primary">
               Agendamento
@@ -80,23 +83,24 @@ function Index() {
       >
         <img
           src={heroImg}
-          alt="Interior da barbearia Navalha & Brasa com cadeiras de couro e luz âmbar"
+          alt="Interior da barbearia Fabrício Barbeiro com cadeiras de couro e luz âmbar"
           width={1920}
           height={1280}
           className="absolute inset-0 h-full w-full object-cover opacity-35"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/40 to-background" />
         <div className="relative z-10 max-w-3xl pt-16">
-          <p className="eyebrow">Tradição e estilo · desde 2009</p>
+          <p className="eyebrow">Escada · Pernambuco</p>
           <h1 className="text-display mt-5 text-6xl leading-[0.95] sm:text-7xl md:text-8xl">
-            Onde a arte do corte
+            Corte, barba
             <br />
-            <span className="text-primary">encontra a elegância</span>
+            <span className="text-primary">e barba terapia</span>
           </h1>
           <p className="mx-auto mt-7 max-w-xl text-base font-light leading-relaxed text-muted-foreground sm:text-lg">
-            Navalha afiada, toalha quente e tempo pra você. Especialistas em cortes
-            clássicos e barbas impecáveis na Vila Madalena.
+            Pigmentação, luzes, alisamento e produtos. Escolha o serviço, veja o tempo
+            e o valor e agende direto no WhatsApp.
           </p>
+
           <a
             href="#servicos"
             className="mt-10 inline-block bg-primary px-10 py-4 text-sm font-bold uppercase tracking-[0.25em] text-primary-foreground transition-colors hover:bg-primary/90"
