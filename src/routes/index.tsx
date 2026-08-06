@@ -3,19 +3,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Clock, Instagram, MapPin, Phone, Scissors } from "lucide-react";
 
 const heroImg = "/images/hero-barbearia.jpg";
-import {
-  SERVICOS,
-  CATEGORIAS,
-  BARBEIROS,
-  INSTAGRAM,
-  INSTAGRAM_URL,
-  ENDERECO,
-  MAPS_URL,
-  HORARIOS_FUNCIONAMENTO,
-} from "@/lib/barbearia";
+const corteImg = "/images/servico-corte.jpg";
+const barbaImg = "/images/servico-barba.jpg";
+const pigmentacaoImg = "/images/servico-pigmentacao.jpg";
+const toalhaImg = "/images/servico-toalha.jpg";
 import { BookingForm } from "@/components/barbearia/BookingForm";
 import { BookingModal } from "@/components/barbearia/BookingModal";
-
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -39,8 +32,39 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const MAPS = MAPS_URL;
+const SERVICOS = [
+  {
+    nome: "Corte",
+    img: corteImg,
+    desc: "Máquina, tesoura e acabamento na navalha.",
+    preco: "R$ 60",
+    tempo: "40 min",
+  },
+  {
+    nome: "Barba",
+    img: barbaImg,
+    desc: "Desenho, navalha e óleo finalizador.",
+    preco: "R$ 45",
+    tempo: "30 min",
+  },
+  {
+    nome: "Pigmentação",
+    img: pigmentacaoImg,
+    desc: "Preenchimento de falhas com efeito natural.",
+    preco: "R$ 50",
+    tempo: "30 min",
+  },
+  {
+    nome: "Toalha Quente",
+    img: toalhaImg,
+    desc: "Ritual de vapor, hidratação e relaxamento.",
+    preco: "R$ 35",
+    tempo: "20 min",
+  },
+];
 
+const ENDERECO = "Rua das Palmeiras, 128 — Vila Madalena, São Paulo";
+const MAPS = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ENDERECO)}`;
 
 function Index() {
   const [open, setOpen] = useState(false);
@@ -98,7 +122,7 @@ function Index() {
           </h1>
           <p className="mx-auto mt-7 max-w-xl text-base font-light leading-relaxed text-muted-foreground sm:text-lg">
             Navalha afiada, toalha quente e tempo pra você. Especialistas em cortes
-            clássicos e barbas impecáveis na Vila Operária, Escada – PE.
+            clássicos e barbas impecáveis na Vila Madalena.
           </p>
           <a
             href="#servicos"
@@ -112,27 +136,16 @@ function Index() {
 
       {/* Serviços */}
       <section id="servicos" className="mx-auto max-w-6xl px-5 py-24">
-        <div className="mb-10 text-center">
+        <div className="mb-16 text-center">
           <h2 className="text-display text-5xl">Nossos serviços</h2>
           <div className="mx-auto mt-4 h-1 w-16 bg-primary" />
-        </div>
-
-        <div className="mb-16 flex flex-wrap justify-center gap-3">
-          {CATEGORIAS.map((c) => (
-            <span
-              key={c}
-              className="border border-border px-4 py-2 text-xs uppercase tracking-[0.2em] text-muted-foreground"
-            >
-              {c}
-            </span>
-          ))}
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {SERVICOS.map((s) => (
             <article
               key={s.nome}
-              className="group relative flex flex-col overflow-hidden border border-border p-8 transition-colors hover:border-primary/50"
+              className="group relative overflow-hidden border border-border p-8 transition-colors hover:border-primary/50"
             >
               <img
                 src={s.img}
@@ -143,15 +156,12 @@ function Index() {
                 height={1000}
                 className="absolute inset-0 h-full w-full object-cover opacity-10 transition-all duration-700 group-hover:scale-105 group-hover:opacity-20"
               />
-              <div className="relative flex h-full flex-col">
-                <span className="text-[10px] uppercase tracking-[0.25em] text-primary/80">
-                  {s.categoria}
-                </span>
-                <h3 className="mt-2 text-2xl transition-colors group-hover:text-primary">
+              <div className="relative">
+                <h3 className="text-2xl transition-colors group-hover:text-primary">
                   {s.nome}
                 </h3>
                 <p className="mt-3 text-sm text-muted-foreground">{s.desc}</p>
-                <div className="mt-6 flex flex-1 items-end justify-between gap-3">
+                <div className="mt-6 flex items-baseline justify-between gap-3">
                   <span className="text-lg font-bold text-primary">{s.preco}</span>
                   <span className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
                     <Clock className="h-3.5 w-3.5" /> {s.tempo}
@@ -161,32 +171,7 @@ function Index() {
             </article>
           ))}
         </div>
-
-        <div className="mx-auto mt-16 max-w-3xl border border-border">
-          <h3 className="border-b border-border px-6 py-4 text-xs font-semibold uppercase tracking-[0.2em] text-foreground">
-            Tabela de tempo e valores
-          </h3>
-          <ul>
-            {SERVICOS.map((s) => (
-              <li
-                key={s.nome}
-                className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border/60 px-6 py-4 text-sm last:border-b-0"
-              >
-                <span className="text-foreground">{s.nome}</span>
-                <span className="flex items-center gap-5 text-muted-foreground">
-                  <span className="text-xs uppercase tracking-[0.2em]">{s.tempo}</span>
-                  <span className="font-bold text-primary">{s.preco}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="px-6 py-4 text-xs text-muted-foreground">
-            Corte com luzes pode oscilar: as luzes agem por cerca de 40 minutos —
-            tempo suficiente para um corte.
-          </p>
-        </div>
       </section>
-
 
       {/* Agendamento */}
       <section
@@ -236,25 +221,22 @@ function Index() {
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 {ENDERECO}
               </a>
-              {BARBEIROS.map((b) => (
-                <a
-                  key={b.nome}
-                  href={`https://wa.me/${b.whatsapp}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-3 text-muted-foreground transition-colors hover:text-primary md:justify-start"
-                >
-                  <Phone className="h-4 w-4 shrink-0 text-primary" /> {b.nome} ·{" "}
-                  {b.telefone}
-                </a>
-              ))}
               <a
-                href={INSTAGRAM_URL}
+                href="https://wa.me/5511999999999"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-3 text-muted-foreground transition-colors hover:text-primary md:justify-start"
               >
-                <Instagram className="h-4 w-4 shrink-0 text-primary" /> @{INSTAGRAM}
+                <Phone className="h-4 w-4 shrink-0 text-primary" /> WhatsApp (11)
+                99999-9999
+              </a>
+              <a
+                href="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-3 text-muted-foreground transition-colors hover:text-primary md:justify-start"
+              >
+                <Instagram className="h-4 w-4 shrink-0 text-primary" /> @navalhaebrasa
               </a>
             </div>
           </div>
@@ -263,17 +245,12 @@ function Index() {
             <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground">
               Horários
             </h3>
-            <div className="mt-6 space-y-3 text-sm text-muted-foreground">
-              {HORARIOS_FUNCIONAMENTO.map((h) => (
-                <p key={h.dias}>
-                  <span className="text-foreground">{h.dias}</span>
-                  <br />
-                  {h.horas}
-                </p>
-              ))}
+            <div className="mt-6 space-y-2 text-sm text-muted-foreground">
+              <p>Terça a sexta · 09h – 20h</p>
+              <p>Sábado · 09h – 18h</p>
+              <p>Domingo e segunda · fechado</p>
             </div>
           </div>
-
         </div>
 
         <p className="mt-16 text-center text-xs uppercase tracking-[0.2em] text-muted-foreground/70">
