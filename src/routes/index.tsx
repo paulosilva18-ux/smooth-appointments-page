@@ -3,27 +3,31 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Clock, Instagram, MapPin, Phone, Scissors } from "lucide-react";
 
 const heroImg = "/images/hero-barbearia.jpg";
-const corteImg = "/images/servico-corte.jpg";
-const barbaImg = "/images/servico-barba.jpg";
-const pigmentacaoImg = "/images/servico-pigmentacao.jpg";
-const toalhaImg = "/images/servico-toalha.jpg";
 import { BookingForm } from "@/components/barbearia/BookingForm";
 import { BookingModal } from "@/components/barbearia/BookingModal";
+import {
+  BARBEIROS,
+  CATEGORIAS,
+  ENDERECO,
+  HORARIO_FUNCIONAMENTO,
+  INSTAGRAM,
+  SERVICOS,
+} from "@/lib/barbearia";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Navalha & Brasa — Barbearia | Agende seu horário" },
+      { title: "Fabrício Barbeiro — Barbearia em Escada/PE | Agende no WhatsApp" },
       {
         name: "description",
         content:
-          "Barbearia clássica com corte, barba, pigmentação e toalha quente. Agende seu horário online em menos de um minuto.",
+          "Corte, barba e barba terapia, pigmentação, luzes e alisamento na Vila Operária, Escada/PE. Veja preços e tempos e agende pelo WhatsApp.",
       },
-      { property: "og:title", content: "Navalha & Brasa — Barbearia" },
+      { property: "og:title", content: "Fabrício Barbeiro — Barbearia em Escada/PE" },
       {
         property: "og:description",
         content:
-          "Corte, barba, pigmentação e toalha quente. Agendamento online rápido.",
+          "Corte a partir de R$ 30, barba, pigmentação e luzes. Agendamento rápido pelo WhatsApp.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -32,39 +36,8 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const SERVICOS = [
-  {
-    nome: "Corte",
-    img: corteImg,
-    desc: "Máquina, tesoura e acabamento na navalha.",
-    preco: "R$ 60",
-    tempo: "40 min",
-  },
-  {
-    nome: "Barba",
-    img: barbaImg,
-    desc: "Desenho, navalha e óleo finalizador.",
-    preco: "R$ 45",
-    tempo: "30 min",
-  },
-  {
-    nome: "Pigmentação",
-    img: pigmentacaoImg,
-    desc: "Preenchimento de falhas com efeito natural.",
-    preco: "R$ 50",
-    tempo: "30 min",
-  },
-  {
-    nome: "Toalha Quente",
-    img: toalhaImg,
-    desc: "Ritual de vapor, hidratação e relaxamento.",
-    preco: "R$ 35",
-    tempo: "20 min",
-  },
-];
-
-const ENDERECO = "Rua das Palmeiras, 128 — Vila Madalena, São Paulo";
 const MAPS = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ENDERECO)}`;
+
 
 function Index() {
   const [open, setOpen] = useState(false);
