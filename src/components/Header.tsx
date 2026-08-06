@@ -46,15 +46,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenBooking, onOpenAdmin }) =>
 
         {/* CTAs */}
         <div className="flex items-center space-x-3">
-          {/* Admin Button */}
-          <button
-            onClick={onOpenAdmin}
-            title="Painel Administrativo do Barbeiro"
-            className="p-2.5 rounded-xl border border-white/10 text-slate-400 hover:text-gold-400 hover:border-gold-500/40 hover:bg-white/5 transition-all text-xs flex items-center space-x-1.5"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span className="hidden sm:inline">Painel</span>
-          </button>
+
 
           {/* Main Booking Button */}
           <button

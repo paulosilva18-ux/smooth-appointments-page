@@ -29,7 +29,7 @@ export const Footer: React.FC = () => {
               <Instagram className="w-4 h-4" />
             </a>
             <a
-              href="https://wa.me/5511999999999"
+              href="https://wa.me/5581987563348"
               target="_blank"
               rel="noreferrer"
               className="p-2.5 rounded-xl bg-white/5 hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-400 transition-all border border-white/5"

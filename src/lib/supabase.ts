@@ -78,7 +78,7 @@ export async function getBookings(): Promise<Booking[]> {
       console.warn('Supabase fetch bookings failed, fallback to localStorage:', e);
     }
   }
-  
+
   // LocalStorage Fallback
   const stored = localStorage.getItem(LOCAL_STORAGE_BOOKINGS_KEY);
   if (!stored) return getSampleBookings();
@@ -98,12 +98,16 @@ export async function createBooking(booking: Omit<Booking, 'id' | 'created_at' |
     created_at: new Date().toISOString()
   };
 
+  // Try Supabase first
   if (isSupabaseConfigured && supabase) {
     try {
+      const isValidUuid = typeof booking.service_id === 'string' &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(booking.service_id);
+
       const { data, error } = await supabase
         .from('bookings')
         .insert([{
-          service_id: booking.service_id,
+          service_id: isValidUuid ? booking.service_id : null,
           service_title: booking.service_title,
           client_name: booking.client_name,
           client_phone: booking.client_phone,
@@ -115,16 +119,27 @@ export async function createBooking(booking: Omit<Booking, 'id' | 'created_at' |
         .select()
         .single();
 
-      if (!error && data) return data as Booking;
+      if (!error && data) {
+        console.log('Booking saved to Supabase:', data.id);
+        return data as Booking;
+      }
+      if (error) console.warn('Supabase insert error:', error.message);
     } catch (e) {
-      console.warn('Supabase insert failed, saving to localStorage:', e);
+      console.warn('Supabase insert threw exception, using localStorage fallback:', e);
     }
   }
 
-  // Save to LocalStorage
-  const existing = await getBookings();
-  const updated = [newBooking, ...existing];
-  localStorage.setItem(LOCAL_STORAGE_BOOKINGS_KEY, JSON.stringify(updated));
+  // Always fall back to LocalStorage — never throw
+  try {
+    const raw = localStorage.getItem(LOCAL_STORAGE_BOOKINGS_KEY);
+    const existing: Booking[] = raw ? JSON.parse(raw) : [];
+    const updated = [newBooking, ...existing];
+    localStorage.setItem(LOCAL_STORAGE_BOOKINGS_KEY, JSON.stringify(updated));
+    console.log('Booking saved to localStorage:', newBooking.id);
+  } catch (e) {
+    console.warn('LocalStorage also failed:', e);
+  }
+
   return newBooking;
 }
 
@@ -145,32 +160,92 @@ export async function updateBookingStatus(id: string, status: Booking['status'])
   return true;
 }
 
-function getSampleBookings(): Booking[] {
+// Subscribe to realtime booking updates
+export function subscribeToBookings(onBookingChange: (payload: any) => void) {
+  if (isSupabaseConfigured && supabase) {
+    const channel = supabase
+      .channel('public:bookings')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'bookings' },
+        (payload) => {
+          onBookingChange(payload);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }
+
+  // Fallback storage listener for same-browser events
+  const handleStorage = (e: StorageEvent) => {
+    if (e.key === LOCAL_STORAGE_BOOKINGS_KEY) {
+      onBookingChange({ eventType: 'LOCAL_CHANGE' });
+    }
+  };
+  window.addEventListener('storage', handleStorage);
+  return () => window.removeEventListener('storage', handleStorage);
+}
+
+// Delete booking
+export async function deleteBooking(id: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase.from('bookings').delete().eq('id', id);
+      if (!error) return true;
+    } catch (e) {
+      console.warn('Supabase delete failed:', e);
+    }
+  }
+
+  const existing = await getBookings();
+  const updated = existing.filter((b) => b.id !== id);
+  localStorage.setItem(LOCAL_STORAGE_BOOKINGS_KEY, JSON.stringify(updated));
+  return true;
+}
+
+// Update Service
+export async function updateServicePrice(id: string, newPrice: number): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await supabase.from('services').update({ price: newPrice }).eq('id', id);
+    } catch (e) {
+      console.warn('Supabase service update failed:', e);
+    }
+  }
+  return true;
+}
+
+// Sample Bookings Fallback
+export function getSampleBookings(): Booking[] {
   const today = new Date().toISOString().split('T')[0];
-  const sample: Booking[] = [
+  return [
     {
       id: 'bkg-sample-1',
       service_id: 'srv-corte',
       service_title: 'Corte de Cabelo',
-      client_name: 'Gabriel Mendonça',
-      client_phone: '(11) 98765-4321',
+      client_name: 'Carlos Eduardo',
+      client_phone: '(81) 99887-6655',
       booking_date: today,
       booking_time: '10:00',
       status: 'confirmed',
+      notes: 'Degradê baixo nas laterais',
       created_at: new Date().toISOString()
     },
     {
       id: 'bkg-sample-2',
       service_id: 'srv-combo',
       service_title: 'Corte + Barba',
-      client_name: 'Mateus Oliveira',
-      client_phone: '(11) 97123-8899',
+      client_name: 'Lucas Matheus',
+      client_phone: '(81) 98765-4321',
       booking_date: today,
       booking_time: '14:30',
       status: 'confirmed',
+      notes: 'Toalha quente na barba',
       created_at: new Date().toISOString()
     }
   ];
-  localStorage.setItem(LOCAL_STORAGE_BOOKINGS_KEY, JSON.stringify(sample));
-  return sample;
 }
+

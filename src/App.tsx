@@ -3,21 +3,35 @@ import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
 import { ServicesSection } from './components/ServicesSection';
 import { BookingModal } from './components/BookingModal';
-import { AdminPanel } from './components/AdminPanel';
 import { Footer } from './components/Footer';
+import { AdminDashboard } from './pages/AdminDashboard';
 import { Service } from './types';
 import { getServices, isSupabaseConfigured } from './lib/supabase';
-import { Database, CheckCircle2, Sparkles } from 'lucide-react';
+import { Database, CheckCircle2, ShieldCheck, ExternalLink } from 'lucide-react';
 
 export function App() {
+  const [currentPath, setCurrentPath] = useState<string>(window.location.pathname);
+  const [hostname, setHostname] = useState<string>(window.location.hostname);
   const [services, setServices] = useState<Service[]>([]);
   const [isBookingOpen, setIsBookingOpen] = useState<boolean>(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
 
   useEffect(() => {
     getServices().then(setServices);
+
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname);
+      setHostname(window.location.hostname);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  const navigateTo = (path: string) => {
+    window.history.pushState({}, '', path);
+    setCurrentPath(path);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleOpenBookingWithService = (service: Service) => {
     setSelectedService(service);
@@ -29,26 +43,31 @@ export function App() {
     setIsBookingOpen(true);
   };
 
+  // Detect if path starts with /admin or hostname contains admin
+  const isAdminDomainOrPath =
+    hostname.includes('admin') || currentPath.startsWith('/admin');
+
+  if (isAdminDomainOrPath) {
+    return (
+      <AdminDashboard
+        onBackToSite={() => {
+          navigateTo('/');
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-dark-900 text-slate-100 flex flex-col font-sans selection:bg-gold-500/30 selection:text-gold-400">
       
-      {/* Supabase Status Banner Indicator */}
-      <div className="bg-dark-800 border-b border-white/5 py-1.5 px-4 text-center text-xs text-slate-400 flex items-center justify-center space-x-2">
-        <Database className="w-3.5 h-3.5 text-gold-400" />
-        <span>
-          Backend Database: <strong className="text-white">{isSupabaseConfigured ? 'Supabase Conectado' : 'Supabase (Modo Demo / LocalStorage Activo)'}</strong>
-        </span>
-        <span className="hidden sm:inline text-slate-600">|</span>
-        <span className="hidden sm:inline text-emerald-400 flex items-center space-x-1">
-          <CheckCircle2 className="w-3 h-3" />
-          <span>Pronto para uso</span>
-        </span>
-      </div>
+
 
       {/* Header */}
       <Header
         onOpenBooking={handleOpenBooking}
-        onOpenAdmin={() => setIsAdminOpen(true)}
+        onOpenAdmin={() => {
+          navigateTo('/admin');
+        }}
       />
 
       {/* Main Content */}
@@ -72,12 +91,6 @@ export function App() {
         onClose={() => setIsBookingOpen(false)}
         services={services}
         initialService={selectedService}
-      />
-
-      {/* Barber Admin Panel */}
-      <AdminPanel
-        isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
       />
 
     </div>
