@@ -288,7 +288,11 @@ function Index() {
         Agendar
       </button>
 
-      <BookingModal open={open} onClose={() => setOpen(false)} />
+      <BookingModal
+        open={open}
+        onClose={() => setOpen(false)}
+        onReservado={() => setRecarregar((n) => n + 1)}
+      />
     </div>
   );
 }

@@ -1,13 +1,16 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
 import { BookingForm } from "./BookingForm";
+import { MyBookings } from "./MyBookings";
 
 export function BookingModal({
   open,
   onClose,
+  onReservado,
 }: {
   open: boolean;
   onClose: () => void;
+  onReservado?: () => void;
 }) {
   useEffect(() => {
     if (!open) return;
