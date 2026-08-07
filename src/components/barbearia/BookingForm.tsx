@@ -13,7 +13,14 @@ const fieldClass =
 
 const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground";
 
-export function BookingForm({ compact = false }: { compact?: boolean }) {
+export function BookingForm({
+  compact = false,
+  onReservado,
+}: {
+  compact?: boolean;
+  onReservado?: () => void;
+}) {
+
   const [nome, setNome] = useState("");
   const [servico, setServico] = useState<string>(SERVICOS[0]!.nome);
   const [barbeiro, setBarbeiro] = useState<string>(BARBEIROS[0]!.nome);
