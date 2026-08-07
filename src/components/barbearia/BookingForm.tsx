@@ -1,23 +1,12 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { SERVICOS, BARBEIROS } from "@/lib/barbearia";
+import { HORARIOS, salvarId } from "@/lib/horarios";
 import {
   criarAgendamento,
   listarHorariosOcupados,
 } from "@/lib/agendamentos.functions";
 
-const HORARIOS = [
-  "07:30",
-  "08:30",
-  "09:30",
-  "10:30",
-  "11:00",
-  "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
-  "18:00",
-];
 
 const fieldClass =
   "w-full rounded-sm border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary";
