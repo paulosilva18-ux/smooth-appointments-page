@@ -1,30 +1,26 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { SERVICOS, BARBEIROS } from "@/lib/barbearia";
+import { HORARIOS, salvarId } from "@/lib/horarios";
 import {
   criarAgendamento,
   listarHorariosOcupados,
 } from "@/lib/agendamentos.functions";
 
-const HORARIOS = [
-  "07:30",
-  "08:30",
-  "09:30",
-  "10:30",
-  "11:00",
-  "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
-  "18:00",
-];
 
 const fieldClass =
   "w-full rounded-sm border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary";
 
 const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground";
 
-export function BookingForm({ compact = false }: { compact?: boolean }) {
+export function BookingForm({
+  compact = false,
+  onReservado,
+}: {
+  compact?: boolean;
+  onReservado?: () => void;
+}) {
+
   const [nome, setNome] = useState("");
   const [servico, setServico] = useState<string>(SERVICOS[0]!.nome);
   const [barbeiro, setBarbeiro] = useState<string>(BARBEIROS[0]!.nome);
@@ -92,10 +88,14 @@ export function BookingForm({ compact = false }: { compact?: boolean }) {
         return;
       }
       setOcupados((prev) => [...prev, hora]);
+      salvarId(res.id);
+      onReservado?.();
       const texto = `Olá, ${profissional.nome}! Quero agendar um horário.%0A%0ANome: ${nome}%0AServiço: ${detalhe}%0AData: ${data}%0AHorário: ${hora}`;
       window.open(`https://wa.me/${profissional.whatsapp}?text=${texto}`, "_blank", "noopener");
       setHora("");
       setMensagem("Horário reservado e bloqueado. Confirmamos no WhatsApp.");
+
+
     } catch {
       setMensagem("Não foi possível reservar agora. Tente novamente.");
     } finally {

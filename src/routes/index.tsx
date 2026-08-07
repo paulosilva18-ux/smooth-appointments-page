@@ -5,6 +5,7 @@ import { Clock, Instagram, MapPin, Phone, Scissors } from "lucide-react";
 const heroImg = "/images/hero-barbearia.jpg";
 import { BookingForm } from "@/components/barbearia/BookingForm";
 import { BookingModal } from "@/components/barbearia/BookingModal";
+import { MyBookings } from "@/components/barbearia/MyBookings";
 import {
   BARBEIROS,
   CATEGORIAS,
@@ -41,6 +42,7 @@ const MAPS = `https://www.google.com/maps/search/?api=1&query=${encodeURICompone
 
 function Index() {
   const [open, setOpen] = useState(false);
+  const [recarregar, setRecarregar] = useState(0);
 
   return (
     <div className="min-h-screen bg-background">
@@ -195,7 +197,9 @@ function Index() {
               confirmação direto no WhatsApp.
             </p>
           </div>
-          <BookingForm />
+          <BookingForm onReservado={() => setRecarregar((n) => n + 1)} />
+          <MyBookings recarregar={recarregar} />
+
         </div>
       </section>
 
@@ -284,7 +288,11 @@ function Index() {
         Agendar
       </button>
 
-      <BookingModal open={open} onClose={() => setOpen(false)} />
+      <BookingModal
+        open={open}
+        onClose={() => setOpen(false)}
+        onReservado={() => setRecarregar((n) => n + 1)}
+      />
     </div>
   );
 }
