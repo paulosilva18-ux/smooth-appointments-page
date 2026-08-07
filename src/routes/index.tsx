@@ -5,6 +5,7 @@ import { Clock, Instagram, MapPin, Phone, Scissors } from "lucide-react";
 const heroImg = "/images/hero-barbearia.jpg";
 import { BookingForm } from "@/components/barbearia/BookingForm";
 import { BookingModal } from "@/components/barbearia/BookingModal";
+import { MyBookings } from "@/components/barbearia/MyBookings";
 import {
   BARBEIROS,
   CATEGORIAS,
@@ -195,7 +196,9 @@ function Index() {
               confirmação direto no WhatsApp.
             </p>
           </div>
-          <BookingForm />
+          <BookingForm onReservado={() => setRecarregar((n) => n + 1)} />
+          <MyBookings recarregar={recarregar} />
+
         </div>
       </section>
 
