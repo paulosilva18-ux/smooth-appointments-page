@@ -46,7 +46,7 @@ export function BookingModal({
         </button>
         <p className="eyebrow">Reserve sua cadeira</p>
         <h2 className="text-display mt-2 mb-6 text-3xl">Agendar horário</h2>
-        <BookingForm compact onReservado={onReservado} />
+        <BookingForm compact onReservado={() => onReservado?.()} />
         <MyBookings recarregar={open ? 1 : 0} />
       </div>
     </div>
