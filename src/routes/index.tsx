@@ -42,6 +42,7 @@ const MAPS = `https://www.google.com/maps/search/?api=1&query=${encodeURICompone
 
 function Index() {
   const [open, setOpen] = useState(false);
+  const [recarregar, setRecarregar] = useState(0);
 
   return (
     <div className="min-h-screen bg-background">
