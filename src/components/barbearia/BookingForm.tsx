@@ -88,10 +88,11 @@ export function BookingForm({
         return;
       }
       setOcupados((prev) => [...prev, hora]);
+      salvarId(res.id);
+      onReservado?.();
       const texto = `Olá, ${profissional.nome}! Quero agendar um horário.%0A%0ANome: ${nome}%0AServiço: ${detalhe}%0AData: ${data}%0AHorário: ${hora}`;
       window.open(`https://wa.me/${profissional.whatsapp}?text=${texto}`, "_blank", "noopener");
-      setHora("");
-      setMensagem("Horário reservado e bloqueado. Confirmamos no WhatsApp.");
+
     } catch {
       setMensagem("Não foi possível reservar agora. Tente novamente.");
     } finally {
