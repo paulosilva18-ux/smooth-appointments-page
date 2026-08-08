@@ -283,6 +283,17 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
       </ul>
 
       {mensagem && <p className="mt-4 text-center text-xs text-muted-foreground">{mensagem}</p>}
+      {aviso && (
+        <a
+          href={aviso.url}
+          target="_blank"
+          rel="noopener"
+          className="mt-3 block rounded-sm border border-primary px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+        >
+          {aviso.label}
+        </a>
+      )}
+
     </div>
   );
 }
