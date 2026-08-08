@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { BARBEIROS } from "@/lib/barbearia";
-import { HORARIOS, lidosIds, removerId } from "@/lib/horarios";
+import {
+  HORARIOS,
+  lidosIds,
+  removerId,
+  dentroDaJanela,
+  POLITICA_CANCELAMENTO,
+  JANELA_CANCELAMENTO_HORAS,
+} from "@/lib/horarios";
 import {
   cancelarAgendamento,
   listarHorariosOcupados,
