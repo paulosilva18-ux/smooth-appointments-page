@@ -81,6 +81,17 @@ export const cancelarAgendamento = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => idInput.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { dentroDaJanela } = await import("@/lib/horarios");
+    const { data: atual, error: erroBusca } = await supabaseAdmin
+      .from("agendamentos")
+      .select("data, hora")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (erroBusca) throw new Error(erroBusca.message);
+    if (!atual) return { ok: false as const, motivo: "inexistente" as const };
+    if (!dentroDaJanela(atual.data, atual.hora)) {
+      return { ok: false as const, motivo: "prazo" as const };
+    }
     const { error } = await supabaseAdmin.from("agendamentos").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true as const };
@@ -90,6 +101,17 @@ export const reagendarAgendamento = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => reagendarInput.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { dentroDaJanela } = await import("@/lib/horarios");
+    const { data: atual, error: erroBusca } = await supabaseAdmin
+      .from("agendamentos")
+      .select("data, hora")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (erroBusca) throw new Error(erroBusca.message);
+    if (!atual) return { ok: false as const, motivo: "inexistente" as const };
+    if (!dentroDaJanela(atual.data, atual.hora) || !dentroDaJanela(data.data, data.hora)) {
+      return { ok: false as const, motivo: "prazo" as const };
+    }
     const { data: row, error } = await supabaseAdmin
       .from("agendamentos")
       .update({ data: data.data, hora: data.hora })

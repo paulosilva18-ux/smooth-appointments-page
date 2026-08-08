@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { SERVICOS, BARBEIROS } from "@/lib/barbearia";
-import { HORARIOS, salvarId } from "@/lib/horarios";
+import { HORARIOS, salvarId, POLITICA_CANCELAMENTO } from "@/lib/horarios";
 import {
   criarAgendamento,
   listarHorariosOcupados,
@@ -205,6 +205,15 @@ export function BookingForm({
             })}
           </div>
         )}
+      </div>
+
+      <div className="rounded-sm border border-border bg-secondary/40 p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+          Política de cancelamento
+        </p>
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+          {POLITICA_CANCELAMENTO} Ao confirmar, você concorda com essa regra.
+        </p>
       </div>
 
       <button
