@@ -219,22 +219,28 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
                   </div>
                 </div>
               ) : (
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4 flex flex-wrap items-center gap-2">
                   <button
                     type="button"
+                    disabled={!alteravel}
                     onClick={() => abrirEdicao(a)}
-                    className="rounded-sm border border-primary px-4 py-2 text-xs uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                    className="rounded-sm border border-primary px-4 py-2 text-xs uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-primary"
                   >
                     Remarcar
                   </button>
                   <button
                     type="button"
-                    disabled={ocupado}
+                    disabled={ocupado || !alteravel}
                     onClick={() => handleCancelar(a)}
-                    className="rounded-sm border border-border px-4 py-2 text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:border-destructive hover:text-destructive disabled:opacity-50"
+                    className="rounded-sm border border-border px-4 py-2 text-xs uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Cancelar
                   </button>
+                  {!alteravel && (
+                    <span className="text-xs text-muted-foreground">
+                      Prazo de {JANELA_CANCELAMENTO_HORAS} h encerrado — fale no WhatsApp.
+                    </span>
+                  )}
                 </div>
               )}
             </li>
