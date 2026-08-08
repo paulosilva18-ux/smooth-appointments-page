@@ -179,7 +179,8 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
                   />
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                     {HORARIOS.map((h) => {
-                      const bloqueado = ocupados.includes(h);
+                      const bloqueado =
+                        ocupados.includes(h) || (!!novaData && !dentroDaJanela(novaData, h));
                       return (
                         <button
                           key={h}
