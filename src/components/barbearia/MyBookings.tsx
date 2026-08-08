@@ -15,6 +15,8 @@ import {
   listarMeusAgendamentos,
   reagendarAgendamento,
 } from "@/lib/agendamentos.functions";
+import { avisarWhatsApp, linkWhatsApp } from "@/lib/notificacoes";
+
 
 type Agendamento = {
   id: string;
@@ -41,6 +43,8 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
   const [ocupados, setOcupados] = useState<string[]>([]);
   const [ocupado, setOcupado] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<{ url: string; label: string } | null>(null);
+
 
   const buscar = useServerFn(listarMeusAgendamentos);
   const cancelar = useServerFn(cancelarAgendamento);
@@ -109,7 +113,21 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
       }
       removerId(a.id);
       setItens((prev) => prev.filter((i) => i.id !== a.id));
-      setMensagem("Agendamento cancelado. O horário voltou a ficar livre.");
+      const dados = {
+        nome: a.nome,
+        servico: a.servico,
+        barbeiro: a.barbeiro,
+        data: a.data,
+        hora: a.hora,
+      };
+      const aberto = avisarWhatsApp("cancelamento", dados);
+      setAviso(
+        aberto
+          ? null
+          : { url: linkWhatsApp("cancelamento", dados), label: "Avisar cancelamento no WhatsApp" },
+      );
+      setMensagem("Agendamento cancelado. O horário voltou a ficar livre e o barbeiro foi avisado.");
+
     } catch {
       setMensagem("Não foi possível cancelar agora. Tente novamente.");
     } finally {
@@ -139,7 +157,23 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
       }
       setItens((prev) => prev.map((i) => (i.id === item.id ? res.agendamento : i)));
       setEditando(null);
-      setMensagem("Horário remarcado com sucesso.");
+      const dados = {
+        nome: item.nome,
+        servico: item.servico,
+        barbeiro: item.barbeiro,
+        data: novaData,
+        hora: novaHora,
+        dataAnterior: item.data,
+        horaAnterior: item.hora,
+      };
+      const aberto = avisarWhatsApp("reagendamento", dados);
+      setAviso(
+        aberto
+          ? null
+          : { url: linkWhatsApp("reagendamento", dados), label: "Avisar novo horário no WhatsApp" },
+      );
+      setMensagem("Horário remarcado e o barbeiro foi avisado no WhatsApp.");
+
     } catch {
       setMensagem("Não foi possível remarcar agora. Tente novamente.");
     } finally {
@@ -249,6 +283,17 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
       </ul>
 
       {mensagem && <p className="mt-4 text-center text-xs text-muted-foreground">{mensagem}</p>}
+      {aviso && (
+        <a
+          href={aviso.url}
+          target="_blank"
+          rel="noopener"
+          className="mt-3 block rounded-sm border border-primary px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+        >
+          {aviso.label}
+        </a>
+      )}
+
     </div>
   );
 }

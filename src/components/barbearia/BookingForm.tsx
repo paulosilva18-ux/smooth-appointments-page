@@ -6,6 +6,8 @@ import {
   criarAgendamento,
   listarHorariosOcupados,
 } from "@/lib/agendamentos.functions";
+import { avisarWhatsApp, linkWhatsApp } from "@/lib/notificacoes";
+
 
 
 const fieldClass =
@@ -31,6 +33,8 @@ export function BookingForm({
   const [carregando, setCarregando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+
 
   const buscarOcupados = useServerFn(listarHorariosOcupados);
   const agendar = useServerFn(criarAgendamento);
@@ -90,10 +94,27 @@ export function BookingForm({
       setOcupados((prev) => [...prev, hora]);
       salvarId(res.id);
       onReservado?.();
-      const texto = `Olá, ${profissional.nome}! Quero agendar um horário.%0A%0ANome: ${nome}%0AServiço: ${detalhe}%0AData: ${data}%0AHorário: ${hora}`;
-      window.open(`https://wa.me/${profissional.whatsapp}?text=${texto}`, "_blank", "noopener");
+      const aberto = avisarWhatsApp("reserva", {
+        nome,
+        servico: detalhe,
+        barbeiro: profissional.nome,
+        data,
+        hora,
+      });
+      setAviso(
+        aberto
+          ? null
+          : linkWhatsApp("reserva", {
+              nome,
+              servico: detalhe,
+              barbeiro: profissional.nome,
+              data,
+              hora,
+            }),
+      );
       setHora("");
       setMensagem("Horário reservado e bloqueado. Confirmamos no WhatsApp.");
+
 
 
     } catch {
@@ -225,7 +246,19 @@ export function BookingForm({
         {enviando ? "Reservando…" : "Confirmar agendamento"}
       </button>
 
+      {aviso && (
+        <a
+          href={aviso}
+          target="_blank"
+          rel="noopener"
+          className="block rounded-sm border border-primary px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+        >
+          Enviar confirmação no WhatsApp
+        </a>
+      )}
+
       <p className="text-center text-xs text-muted-foreground">
+
         {mensagem ?? "O horário fica bloqueado assim que a reserva é feita."}
       </p>
     </form>
