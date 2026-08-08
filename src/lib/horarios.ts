@@ -13,6 +13,22 @@ export const HORARIOS = [
 
 const STORAGE_KEY = "fb-agendamentos";
 
+/** Janela mínima (em horas) para cancelar ou remarcar um horário. */
+export const JANELA_CANCELAMENTO_HORAS = 3;
+
+export const POLITICA_CANCELAMENTO = `Cancelamentos e remarcações são permitidos até ${JANELA_CANCELAMENTO_HORAS} horas antes do horário marcado. Depois disso, fale direto com o barbeiro no WhatsApp.`;
+
+/** Converte data (YYYY-MM-DD) + hora (HH:MM) no fuso de Pernambuco (UTC-3). */
+export function instanteAgendamento(data: string, hora: string): number {
+  return Date.parse(`${data}T${hora}:00-03:00`);
+}
+
+export function dentroDaJanela(data: string, hora: string, agora = Date.now()): boolean {
+  const inicio = instanteAgendamento(data, hora);
+  if (Number.isNaN(inicio)) return true;
+  return inicio - agora >= JANELA_CANCELAMENTO_HORAS * 60 * 60 * 1000;
+}
+
 export function lidosIds(): string[] {
   if (typeof window === "undefined") return [];
   try {
