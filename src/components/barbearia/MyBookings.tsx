@@ -92,11 +92,21 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
     setMensagem(null);
   };
 
+  const foraDoPrazoMsg = `Prazo encerrado: só é possível alterar até ${JANELA_CANCELAMENTO_HORAS} h antes. Fale com o barbeiro no WhatsApp.`;
+
   const handleCancelar = async (a: Agendamento) => {
+    if (!dentroDaJanela(a.data, a.hora)) {
+      setMensagem(foraDoPrazoMsg);
+      return;
+    }
     if (!window.confirm(`Cancelar o horário de ${formatarData(a.data)} às ${a.hora}?`)) return;
     setOcupado(true);
     try {
-      await cancelar({ data: { id: a.id } });
+      const res = await cancelar({ data: { id: a.id } });
+      if (!res.ok) {
+        setMensagem(res.motivo === "prazo" ? foraDoPrazoMsg : "Esse agendamento não existe mais.");
+        return;
+      }
       removerId(a.id);
       setItens((prev) => prev.filter((i) => i.id !== a.id));
       setMensagem("Agendamento cancelado. O horário voltou a ficar livre.");
@@ -109,6 +119,10 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
 
   const handleReagendar = async () => {
     if (!item || !novaData || !novaHora) return;
+    if (!dentroDaJanela(novaData, novaHora)) {
+      setMensagem(`Escolha um horário com pelo menos ${JANELA_CANCELAMENTO_HORAS} h de antecedência.`);
+      return;
+    }
     setOcupado(true);
     setMensagem(null);
     try {
@@ -117,7 +131,9 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
         setMensagem(
           res.motivo === "ocupado"
             ? "Esse horário já está reservado. Escolha outro."
-            : "Esse agendamento não existe mais.",
+            : res.motivo === "prazo"
+              ? foraDoPrazoMsg
+              : "Esse agendamento não existe mais.",
         );
         return;
       }
@@ -136,11 +152,13 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
   return (
     <div className="mt-12 border border-border bg-secondary/30 p-6">
       <p className="eyebrow">Seus horários</p>
-      <h3 className="text-display mt-1 mb-5 text-2xl">Cancelar ou remarcar</h3>
+      <h3 className="text-display mt-1 mb-2 text-2xl">Cancelar ou remarcar</h3>
+      <p className="mb-5 text-xs leading-relaxed text-muted-foreground">{POLITICA_CANCELAMENTO}</p>
 
       <ul className="space-y-3">
         {itens.map((a) => {
           const prof = BARBEIROS.find((b) => b.nome === a.barbeiro);
+          const alteravel = dentroDaJanela(a.data, a.hora);
           return (
             <li key={a.id} className="border border-border bg-background/40 p-4">
               <p className="text-sm font-semibold text-foreground">
