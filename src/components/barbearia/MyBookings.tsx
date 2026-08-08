@@ -113,7 +113,21 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
       }
       removerId(a.id);
       setItens((prev) => prev.filter((i) => i.id !== a.id));
-      setMensagem("Agendamento cancelado. O horário voltou a ficar livre.");
+      const dados = {
+        nome: a.nome,
+        servico: a.servico,
+        barbeiro: a.barbeiro,
+        data: a.data,
+        hora: a.hora,
+      };
+      const aberto = avisarWhatsApp("cancelamento", dados);
+      setAviso(
+        aberto
+          ? null
+          : { url: linkWhatsApp("cancelamento", dados), label: "Avisar cancelamento no WhatsApp" },
+      );
+      setMensagem("Agendamento cancelado. O horário voltou a ficar livre e o barbeiro foi avisado.");
+
     } catch {
       setMensagem("Não foi possível cancelar agora. Tente novamente.");
     } finally {
