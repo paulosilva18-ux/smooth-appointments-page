@@ -157,7 +157,23 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
       }
       setItens((prev) => prev.map((i) => (i.id === item.id ? res.agendamento : i)));
       setEditando(null);
-      setMensagem("Horário remarcado com sucesso.");
+      const dados = {
+        nome: item.nome,
+        servico: item.servico,
+        barbeiro: item.barbeiro,
+        data: novaData,
+        hora: novaHora,
+        dataAnterior: item.data,
+        horaAnterior: item.hora,
+      };
+      const aberto = avisarWhatsApp("reagendamento", dados);
+      setAviso(
+        aberto
+          ? null
+          : { url: linkWhatsApp("reagendamento", dados), label: "Avisar novo horário no WhatsApp" },
+      );
+      setMensagem("Horário remarcado e o barbeiro foi avisado no WhatsApp.");
+
     } catch {
       setMensagem("Não foi possível remarcar agora. Tente novamente.");
     } finally {
