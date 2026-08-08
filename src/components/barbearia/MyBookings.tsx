@@ -15,6 +15,8 @@ import {
   listarMeusAgendamentos,
   reagendarAgendamento,
 } from "@/lib/agendamentos.functions";
+import { avisarWhatsApp, linkWhatsApp } from "@/lib/notificacoes";
+
 
 type Agendamento = {
   id: string;
@@ -41,6 +43,8 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
   const [ocupados, setOcupados] = useState<string[]>([]);
   const [ocupado, setOcupado] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<{ url: string; label: string } | null>(null);
+
 
   const buscar = useServerFn(listarMeusAgendamentos);
   const cancelar = useServerFn(cancelarAgendamento);
