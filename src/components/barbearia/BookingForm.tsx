@@ -246,7 +246,19 @@ export function BookingForm({
         {enviando ? "Reservando…" : "Confirmar agendamento"}
       </button>
 
+      {aviso && (
+        <a
+          href={aviso}
+          target="_blank"
+          rel="noopener"
+          className="block rounded-sm border border-primary px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+        >
+          Enviar confirmação no WhatsApp
+        </a>
+      )}
+
       <p className="text-center text-xs text-muted-foreground">
+
         {mensagem ?? "O horário fica bloqueado assim que a reserva é feita."}
       </p>
     </form>
