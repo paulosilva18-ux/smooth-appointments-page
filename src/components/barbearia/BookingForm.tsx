@@ -6,6 +6,8 @@ import {
   criarAgendamento,
   listarHorariosOcupados,
 } from "@/lib/agendamentos.functions";
+import { avisarWhatsApp, linkWhatsApp } from "@/lib/notificacoes";
+
 
 
 const fieldClass =
@@ -31,6 +33,8 @@ export function BookingForm({
   const [carregando, setCarregando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+
 
   const buscarOcupados = useServerFn(listarHorariosOcupados);
   const agendar = useServerFn(criarAgendamento);
