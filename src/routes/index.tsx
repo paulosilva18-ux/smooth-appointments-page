@@ -276,6 +276,15 @@ function Index() {
         <p className="mt-16 text-center text-xs uppercase tracking-[0.2em] text-muted-foreground/70">
           © {new Date().getFullYear()} Fabrício Barbeiro. Todos os direitos reservados.
         </p>
+        <p className="mt-3 text-center">
+          <Link
+            to="/painel"
+            className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50 transition-colors hover:text-primary"
+          >
+            Área do barbeiro
+          </Link>
+        </p>
+
       </footer>
 
 
