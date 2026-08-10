@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Clock, Instagram, MapPin, Phone, Scissors } from "lucide-react";
 
 const heroImg = "/images/hero-barbearia.jpg";
