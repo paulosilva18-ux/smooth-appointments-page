@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PainelIndexRouteImport } from './routes/painel.index'
+import { Route as PainelBarbeiroRouteImport } from './routes/painel.$barbeiro'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,30 +23,39 @@ const PainelIndexRoute = PainelIndexRouteImport.update({
   path: '/painel/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PainelBarbeiroRoute = PainelBarbeiroRouteImport.update({
+  id: '/painel/$barbeiro',
+  path: '/painel/$barbeiro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/painel/$barbeiro': typeof PainelBarbeiroRoute
   '/painel/': typeof PainelIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/painel/$barbeiro': typeof PainelBarbeiroRoute
   '/painel': typeof PainelIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/painel/$barbeiro': typeof PainelBarbeiroRoute
   '/painel/': typeof PainelIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/painel/'
+  fullPaths: '/' | '/painel/$barbeiro' | '/painel/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/painel'
-  id: '__root__' | '/' | '/painel/'
+  to: '/' | '/painel/$barbeiro' | '/painel'
+  id: '__root__' | '/' | '/painel/$barbeiro' | '/painel/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PainelBarbeiroRoute: typeof PainelBarbeiroRoute
   PainelIndexRoute: typeof PainelIndexRoute
 }
 
@@ -65,11 +75,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/painel/$barbeiro': {
+      id: '/painel/$barbeiro'
+      path: '/painel/$barbeiro'
+      fullPath: '/painel/$barbeiro'
+      preLoaderRoute: typeof PainelBarbeiroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PainelBarbeiroRoute: PainelBarbeiroRoute,
   PainelIndexRoute: PainelIndexRoute,
 }
 export const routeTree = rootRouteImport
