@@ -396,27 +396,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
           <div className="space-y-2">
             <h2 className="text-2xl font-extrabold text-white">Painel do Barbeiro</h2>
             <p className="text-xs text-slate-400">
-              Digite sua senha individual ou a senha Master para acessar.
+              Digite a sua senha de acesso para entrar.
             </p>
-          </div>
-
-          {/* Guia de Senhas */}
-          <div className="p-3.5 rounded-xl bg-dark-800/80 border border-white/10 text-left text-xs space-y-1.5 text-slate-300">
-            <span className="font-bold text-gold-400 block text-[11px] uppercase tracking-wider">
-              🔑 Senhas de Acesso:
-            </span>
-            <div className="flex justify-between">
-              <span>💈 Fabrício:</span>
-              <code className="text-white font-mono bg-white/5 px-2 rounded">fabricio2026</code>
-            </div>
-            <div className="flex justify-between">
-              <span>💈 Victor Paz:</span>
-              <code className="text-white font-mono bg-white/5 px-2 rounded">victor2026</code>
-            </div>
-            <div className="flex justify-between pt-1 border-t border-white/5">
-              <span>👑 Visão Geral (Ambos):</span>
-              <code className="text-gold-400 font-mono bg-white/5 px-2 rounded">admin2026</code>
-            </div>
           </div>
 
           <form onSubmit={handlePinSubmit} className="space-y-4">
@@ -424,7 +405,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
               <input
                 type="password"
                 maxLength={20}
-                placeholder="Digite sua Senha de Acesso"
+                placeholder="Senha de Acesso"
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
                 className={`w-full text-center tracking-widest text-lg font-bold py-3 px-4 rounded-xl bg-dark-900 border text-white placeholder-slate-500 focus:outline-none ${
@@ -435,7 +416,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
               />
               {pinError && (
                 <span className="text-xs text-rose-400 font-bold block mt-1">
-                  Senha incorreta! Digite fabricio2026, victor2026 ou admin2026.
+                  Senha incorreta! Tente novamente.
                 </span>
               )}
             </div>
