@@ -44,18 +44,14 @@ export function App() {
     setIsBookingOpen(true);
   };
 
-  // Rota /fabricio-admin — painel dedicado Fabrício Barbeiro
-  if (currentPath.startsWith('/fabricio-admin')) {
-    return (
-      <FabricioAdminDashboard
-        onBackToSite={() => navigateTo('/')}
-      />
-    );
-  }
-
-  // Detect if path starts with /admin or hostname contains admin
+  // Detect if path is admin related
+  const isFabricioAdmin = currentPath.startsWith('/fabricio-admin') || currentPath.startsWith('/admin/fabricio');
+  const isVictorAdmin = currentPath.startsWith('/victor-admin') || currentPath.startsWith('/admin/victor');
   const isAdminDomainOrPath =
-    hostname.includes('admin') || currentPath.startsWith('/admin');
+    hostname.includes('admin') ||
+    currentPath.startsWith('/admin') ||
+    isFabricioAdmin ||
+    isVictorAdmin;
 
   if (isAdminDomainOrPath) {
     return (

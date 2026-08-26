@@ -52,9 +52,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
   const [pinError, setPinError] = useState<boolean>(false);
 
   // Módulo de Troca de Perfil: 'barber-fabricio' | 'barber-victor' | 'all'
-  const [selectedProfileId, setSelectedProfileId] = useState<string>(
-    sessionStorage.getItem('admin_profile_id') || 'all'
-  );
+  const getInitialProfileId = () => {
+    const path = window.location.pathname.toLowerCase();
+    if (path.includes('fabricio')) return 'barber-fabricio';
+    if (path.includes('victor')) return 'barber-victor';
+    return sessionStorage.getItem('admin_profile_id') || 'all';
+  };
+
+  const [selectedProfileId, setSelectedProfileId] = useState<string>(getInitialProfileId);
 
   // Estados de Dados
   const [bookings, setBookings] = useState<Booking[]>([]);
