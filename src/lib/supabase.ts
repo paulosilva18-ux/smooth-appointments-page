@@ -14,13 +14,13 @@ export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
-// Barbeiros Padrão da Barbearia (Dados do Lovable)
+// Barbeiros Padrão da Barbearia (Com fotos reais de Fabrício & Victor Paz)
 export const DEFAULT_BARBERS: Barber[] = [
   {
     id: 'barber-fabricio',
     name: 'Fabrício',
     email: 'fabricio@barbearia.com',
-    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+    avatar_url: '/images/fabricio.jpg',
     phone: '(81) 99202-2522',
     bio: 'Especialista em Degradê Moderno, Corte e Visagismo Masculino.'
   },
@@ -28,7 +28,7 @@ export const DEFAULT_BARBERS: Barber[] = [
     id: 'barber-victor',
     name: 'Victor Paz',
     email: 'victorpaz@barbearia.com',
-    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+    avatar_url: '/images/victor.jpg',
     phone: '(81) 98931-2949',
     bio: 'Mestre em Barba Clássica, Barba Terapia, Pigmentação e Luzes.'
   }
