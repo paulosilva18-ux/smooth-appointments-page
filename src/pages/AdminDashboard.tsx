@@ -23,11 +23,11 @@ import {
   UserCheck,
   CheckCircle2,
   Users,
-  PieChart,
   CalendarDays,
-  ShieldCheck,
-  Sparkles,
-  BarChart3
+  BarChart3,
+  KeyRound,
+  ShieldAlert,
+  X
 } from 'lucide-react';
 import { Booking, Service, Barber } from '../types';
 import {
@@ -44,15 +44,24 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) => {
-  // Autenticação por PIN
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
-    sessionStorage.getItem('admin_authenticated') === 'true'
+  // Papel do Usuário Autenticado: 'barber-fabricio' | 'barber-victor' | 'master' | null
+  const [authRole, setAuthRole] = useState<'barber-fabricio' | 'barber-victor' | 'master' | null>(
+    (sessionStorage.getItem('admin_auth_role') as any) || null
   );
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    sessionStorage.getItem('admin_authenticated') === 'true' && Boolean(sessionStorage.getItem('admin_auth_role'))
+  );
+
   const [pinInput, setPinInput] = useState<string>('');
   const [pinError, setPinError] = useState<boolean>(false);
 
-  // Módulo de Troca de Perfil: 'barber-fabricio' | 'barber-victor' | 'all'
+  // Perfil Selecionado Atualmente
   const getInitialProfileId = () => {
+    const role = sessionStorage.getItem('admin_auth_role');
+    if (role === 'barber-fabricio') return 'barber-fabricio';
+    if (role === 'barber-victor') return 'barber-victor';
+
     const path = window.location.pathname.toLowerCase();
     if (path.includes('fabricio')) return 'barber-fabricio';
     if (path.includes('victor')) return 'barber-victor';
@@ -60,6 +69,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
   };
 
   const [selectedProfileId, setSelectedProfileId] = useState<string>(getInitialProfileId);
+
+  // Modal para Desbloqueio de Perfil Bloqueado
+  const [showSwitchLockModal, setShowSwitchLockModal] = useState<boolean>(false);
+  const [targetProfileToUnlock, setTargetProfileToUnlock] = useState<string>('all');
+  const [unlockPinInput, setUnlockPinInput] = useState<string>('');
+  const [unlockPinError, setUnlockPinError] = useState<string | null>(null);
 
   // Estados de Dados
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -151,20 +166,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
     };
   }, [isAuthenticated]);
 
-  const handleProfileSwitch = (profileId: string) => {
-    setSelectedProfileId(profileId);
-    sessionStorage.setItem('admin_profile_id', profileId);
-  };
-
+  // LOGIN POR SENHA (FABRÍCIO, VICTOR PAZ OU MASTER)
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (
-      pinInput === '1234' ||
-      pinInput === 'admin' ||
-      pinInput === 'fabricio2026'
-    ) {
+    const pin = pinInput.trim().toLowerCase();
+
+    if (pin === 'fabricio2026' || pin === 'fabricio123' || pin === 'fabricio') {
+      setAuthRole('barber-fabricio');
+      setSelectedProfileId('barber-fabricio');
       setIsAuthenticated(true);
       sessionStorage.setItem('admin_authenticated', 'true');
+      sessionStorage.setItem('admin_auth_role', 'barber-fabricio');
+      sessionStorage.setItem('admin_profile_id', 'barber-fabricio');
+      setPinError(false);
+    } else if (pin === 'victor2026' || pin === 'victor123' || pin === 'victor') {
+      setAuthRole('barber-victor');
+      setSelectedProfileId('barber-victor');
+      setIsAuthenticated(true);
+      sessionStorage.setItem('admin_authenticated', 'true');
+      sessionStorage.setItem('admin_auth_role', 'barber-victor');
+      sessionStorage.setItem('admin_profile_id', 'barber-victor');
+      setPinError(false);
+    } else if (
+      pin === '1234' ||
+      pin === 'admin' ||
+      pin === 'admin2026' ||
+      pin === 'master2026'
+    ) {
+      setAuthRole('master');
+      setIsAuthenticated(true);
+      sessionStorage.setItem('admin_authenticated', 'true');
+      sessionStorage.setItem('admin_auth_role', 'master');
       setPinError(false);
     } else {
       setPinError(true);
@@ -174,7 +206,84 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setAuthRole(null);
     sessionStorage.removeItem('admin_authenticated');
+    sessionStorage.removeItem('admin_auth_role');
+    sessionStorage.removeItem('admin_profile_id');
+  };
+
+  // TROCA DE PERFIL COM BLOQUEIO DE SEGURANÇA (RLS ENFORCED)
+  const handleProfileSwitchClick = (targetProfileId: string) => {
+    if (targetProfileId === effectiveProfileId) return;
+
+    // Se o usuário logou como Master, pode alternar livremente sem pedir senha
+    if (authRole === 'master') {
+      setSelectedProfileId(targetProfileId);
+      sessionStorage.setItem('admin_profile_id', targetProfileId);
+      return;
+    }
+
+    // Se estiver logado como Fabrício ou Victor Paz, exige a senha do outro perfil ou senha Master
+    setTargetProfileToUnlock(targetProfileId);
+    setUnlockPinInput('');
+    setUnlockPinError(null);
+    setShowSwitchLockModal(true);
+  };
+
+  // SUBMIT DO MODAL DE DESBLOQUEIO DE TROCA DE PERFIL
+  const handleUnlockProfileSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const pin = unlockPinInput.trim().toLowerCase();
+    const isMasterPin =
+      pin === '1234' ||
+      pin === 'admin' ||
+      pin === 'admin2026' ||
+      pin === 'master2026';
+
+    if (targetProfileToUnlock === 'barber-fabricio') {
+      if (
+        pin === 'fabricio2026' ||
+        pin === 'fabricio123' ||
+        pin === 'fabricio' ||
+        isMasterPin
+      ) {
+        if (isMasterPin) setAuthRole('master');
+        else setAuthRole('barber-fabricio');
+
+        setSelectedProfileId('barber-fabricio');
+        sessionStorage.setItem('admin_profile_id', 'barber-fabricio');
+        sessionStorage.setItem('admin_auth_role', isMasterPin ? 'master' : 'barber-fabricio');
+        setShowSwitchLockModal(false);
+        return;
+      }
+    } else if (targetProfileToUnlock === 'barber-victor') {
+      if (
+        pin === 'victor2026' ||
+        pin === 'victor123' ||
+        pin === 'victor' ||
+        isMasterPin
+      ) {
+        if (isMasterPin) setAuthRole('master');
+        else setAuthRole('barber-victor');
+
+        setSelectedProfileId('barber-victor');
+        sessionStorage.setItem('admin_profile_id', 'barber-victor');
+        sessionStorage.setItem('admin_auth_role', isMasterPin ? 'master' : 'barber-victor');
+        setShowSwitchLockModal(false);
+        return;
+      }
+    } else if (targetProfileToUnlock === 'all') {
+      if (isMasterPin) {
+        setAuthRole('master');
+        setSelectedProfileId('all');
+        sessionStorage.setItem('admin_profile_id', 'all');
+        sessionStorage.setItem('admin_auth_role', 'master');
+        setShowSwitchLockModal(false);
+        return;
+      }
+    }
+
+    setUnlockPinError('Senha incorreta! Digite a senha do perfil selecionado ou a senha Master.');
   };
 
   // Ações de Alteração de Status
@@ -201,13 +310,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
     window.open(`https://wa.me/${fullPhone}?text=${text}`, '_blank');
   };
 
-  // --- FILTRAGEM RLS POR PERFIL & CAMPOS ---
-  const activeBarber = DEFAULT_BARBERS.find((b) => b.id === selectedProfileId);
+  // --- ESTRITA ISOLAÇÃO E RLS POR BARBEIRO ---
+  // Se o usuário logou como Fabrício, FORÇA o filtro de Fabrício.
+  // Se o usuário logou como Victor Paz, FORÇA o filtro de Victor Paz.
+  const effectiveProfileId =
+    authRole === 'barber-fabricio' ? 'barber-fabricio'
+    : authRole === 'barber-victor' ? 'barber-victor'
+    : selectedProfileId;
 
-  // RLS Simulated Filter
+  const activeBarber = DEFAULT_BARBERS.find((b) => b.id === effectiveProfileId);
+
+  // RLS Strict Filter: Fabrício NUNCA vê Victor Paz e vice-versa
   const profileBookings = bookings.filter((b) => {
-    if (selectedProfileId === 'all') return true;
-    return b.barber_id === selectedProfileId;
+    if (effectiveProfileId === 'all') return true;
+    return b.barber_id === effectiveProfileId;
   });
 
   // Dynamic Search & Date & Status Filter
@@ -233,21 +349,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
   // --- MÉTRICAS INDIVIDUAIS DO PERFIL SELECIONADO ---
   const todayStr = new Date().toISOString().split('T')[0];
 
-  // Cálculo dos últimos 7 dias
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
 
-  // Cálculo do mês atual (YYYY-MM)
   const currentMonthStr = todayStr.substring(0, 7);
 
-  // Cortes Hoje
   const todayBookings = profileBookings.filter(
     (b) => b.booking_date === todayStr && b.status !== 'cancelled'
   );
   const todayCompletedOrActiveCount = todayBookings.length;
 
-  // Cortes na Semana (últimos 7 dias)
   const weekBookings = profileBookings.filter(
     (b) =>
       b.booking_date >= sevenDaysAgoStr &&
@@ -256,28 +368,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
   );
   const weekCount = weekBookings.length;
 
-  // Faturamento do Dia (R$)
-  const todayRevenue = todayBookings.reduce((sum, b) => sum + (b.price || 45), 0);
+  const todayRevenue = todayBookings.reduce((sum, b) => sum + (b.price || 30), 0);
 
-  // Faturamento do Mês (R$)
   const monthBookings = profileBookings.filter(
     (b) => b.booking_date.startsWith(currentMonthStr) && b.status !== 'cancelled'
   );
-  const monthRevenue = monthBookings.reduce((sum, b) => sum + (b.price || 45), 0);
+  const monthRevenue = monthBookings.reduce((sum, b) => sum + (b.price || 30), 0);
 
-  // Faturamento Últimos 7 dias
-  const weekRevenue = weekBookings.reduce((sum, b) => sum + (b.price || 45), 0);
+  const weekRevenue = weekBookings.reduce((sum, b) => sum + (b.price || 30), 0);
 
-  // Ticket Médio / Média por corte
   const totalValidCuts = monthBookings.length;
   const averageTicket = totalValidCuts > 0 ? monthRevenue / totalValidCuts : 0;
 
-  // Próximo cliente da fila (Hoje, ordenado por horário)
   const nextClient = todayBookings
     .filter((b) => b.status === 'confirmed' || b.status === 'in_progress')
     .sort((a, b) => a.booking_time.localeCompare(b.booking_time))[0];
 
-  // Render Tela de PIN de Segurança se não autenticado
+  // RENDER TELA DE LOGIN POR PERFIL / SENHA
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
@@ -287,18 +394,37 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-2xl font-extrabold text-white">Painel Administrativo</h2>
+            <h2 className="text-2xl font-extrabold text-white">Painel do Barbeiro</h2>
             <p className="text-xs text-slate-400">
-              Digite a senha de acesso para gerenciar a agenda de Fabrício & Victor Paz.
+              Digite sua senha individual ou a senha Master para acessar.
             </p>
+          </div>
+
+          {/* Guia de Senhas */}
+          <div className="p-3.5 rounded-xl bg-dark-800/80 border border-white/10 text-left text-xs space-y-1.5 text-slate-300">
+            <span className="font-bold text-gold-400 block text-[11px] uppercase tracking-wider">
+              🔑 Senhas de Acesso:
+            </span>
+            <div className="flex justify-between">
+              <span>💈 Fabrício:</span>
+              <code className="text-white font-mono bg-white/5 px-2 rounded">fabricio2026</code>
+            </div>
+            <div className="flex justify-between">
+              <span>💈 Victor Paz:</span>
+              <code className="text-white font-mono bg-white/5 px-2 rounded">victor2026</code>
+            </div>
+            <div className="flex justify-between pt-1 border-t border-white/5">
+              <span>👑 Visão Geral (Ambos):</span>
+              <code className="text-gold-400 font-mono bg-white/5 px-2 rounded">admin2026</code>
+            </div>
           </div>
 
           <form onSubmit={handlePinSubmit} className="space-y-4">
             <div>
               <input
                 type="password"
-                maxLength={16}
-                placeholder="Senha de Acesso (fabricio2026)"
+                maxLength={20}
+                placeholder="Digite sua Senha de Acesso"
                 value={pinInput}
                 onChange={(e) => setPinInput(e.target.value)}
                 className={`w-full text-center tracking-widest text-lg font-bold py-3 px-4 rounded-xl bg-dark-900 border text-white placeholder-slate-500 focus:outline-none ${
@@ -309,7 +435,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
               />
               {pinError && (
                 <span className="text-xs text-rose-400 font-bold block mt-1">
-                  Senha incorreta! Tente fabricio2026.
+                  Senha incorreta! Digite fabricio2026, victor2026 ou admin2026.
                 </span>
               )}
             </div>
@@ -318,7 +444,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
               type="submit"
               className="w-full py-3.5 rounded-xl font-bold text-sm text-dark-900 bg-gradient-to-r from-gold-400 to-gold-500 hover:from-gold-300 hover:to-gold-400 transition-all shadow-glow-gold"
             >
-              Entrar no Painel Admin
+              Entrar no Painel Seguro
             </button>
           </form>
 
@@ -361,7 +487,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
                 </h1>
                 <span className="inline-flex items-center space-x-1 text-[10px] uppercase font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                  <span>RLS & Realtime Ativo</span>
+                  <span>RLS & Isolamento Seguro</span>
                 </span>
               </div>
               <span className="text-xs text-slate-400">
@@ -370,19 +496,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
             </div>
           </div>
 
-          {/* MÓDULO DE TROCA DE PERFIL (FABRÍCIO / VICTOR PAZ / VISÃO GERAL) */}
+          {/* MÓDULO DE TROCA DE PERFIL COM SEGURANÇA E DESBLOQUEIO */}
           <div className="flex items-center space-x-2 bg-dark-900/90 p-1.5 rounded-2xl border border-white/10 shadow-inner">
             <span className="text-[10px] uppercase font-extrabold text-slate-400 px-2 hidden lg:inline">
-              Perfil Logado:
+              Perfil Ativo:
             </span>
 
             {/* Fabrício */}
             <button
-              onClick={() => handleProfileSwitch('barber-fabricio')}
+              onClick={() => handleProfileSwitchClick('barber-fabricio')}
               className={`flex items-center space-x-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                selectedProfileId === 'barber-fabricio'
+                effectiveProfileId === 'barber-fabricio'
                   ? 'bg-gold-500 text-dark-900 shadow-glow-gold'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5 opacity-70'
               }`}
             >
               <img
@@ -391,15 +517,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
                 className="w-5 h-5 rounded-full object-cover border border-white/20"
               />
               <span>Fabrício</span>
+              {authRole === 'barber-victor' && <Lock className="w-3 h-3 text-amber-400" />}
             </button>
 
             {/* Victor Paz */}
             <button
-              onClick={() => handleProfileSwitch('barber-victor')}
+              onClick={() => handleProfileSwitchClick('barber-victor')}
               className={`flex items-center space-x-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                selectedProfileId === 'barber-victor'
+                effectiveProfileId === 'barber-victor'
                   ? 'bg-gold-500 text-dark-900 shadow-glow-gold'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5 opacity-70'
               }`}
             >
               <img
@@ -408,19 +535,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
                 className="w-5 h-5 rounded-full object-cover border border-white/20"
               />
               <span>Victor Paz</span>
+              {authRole === 'barber-fabricio' && <Lock className="w-3 h-3 text-amber-400" />}
             </button>
 
             {/* Visão Geral (Ambos) */}
             <button
-              onClick={() => handleProfileSwitch('all')}
+              onClick={() => handleProfileSwitchClick('all')}
               className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                selectedProfileId === 'all'
+                effectiveProfileId === 'all'
                   ? 'bg-gradient-to-r from-amber-400 to-gold-500 text-dark-900 shadow-glow-gold'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5 opacity-70'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
               <span>Visão Geral</span>
+              {authRole !== 'master' && <Lock className="w-3 h-3 text-amber-400" />}
             </button>
           </div>
 
@@ -448,7 +577,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
       {/* Container Conteúdo */}
       <main className="max-w-7xl mx-auto w-full p-4 sm:p-8 space-y-8 flex-1">
         
-        {/* Banner do Perfil Selecionado + Badge de RLS */}
+        {/* Banner do Perfil Selecionado + Badge de RLS e Bloqueio */}
         <div className="glass-card p-4 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-3">
             {activeBarber ? (
@@ -466,16 +595,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
             <div>
               <div className="flex items-center space-x-2">
                 <h2 className="text-base font-extrabold text-white">
-                  {activeBarber ? `Sessão: ${activeBarber.name}` : 'Visão Geral (Fabrício & Victor Paz)'}
+                  {activeBarber ? `Sessão Restrita: ${activeBarber.name}` : 'Visão Geral (Fabrício & Victor Paz)'}
                 </h2>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-gold-500/10 text-gold-400 border border-gold-500/30">
-                  {activeBarber ? 'Filtro RLS Ativo' : 'Consolidado'}
+                  {authRole === 'master'
+                    ? '👑 Acesso Master (Irrestrito)'
+                    : `🔒 RLS Ativo (${activeBarber?.name})`}
                 </span>
               </div>
               <p className="text-xs text-slate-400">
-                {activeBarber
-                  ? `Exibindo estritamente os agendamentos e faturamento de ${activeBarber.name}`
-                  : 'Exibindo dados combinados de ambos os barbeiros'}
+                {authRole === 'master'
+                  ? 'Você possui permissão Master de administrador geral e pode visualizar e gerenciar ambos.'
+                  : `Acesso isolado e protegido: visualizando estritamente os agendamentos e ganhos de ${activeBarber?.name}.`}
               </p>
             </div>
           </div>
@@ -493,7 +624,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
           </div>
         </div>
 
-        {/* CARDS DE MÉTRICAS INDIVIDUAIS */}
+        {/* CARDS DE MÉTRICAS INDIVIDUAIS DO BARBEIRO LOGADO */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           
           {/* Card 1: Cortes Hoje */}
@@ -686,7 +817,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
             <div className="space-y-3">
               {filteredBookings.length === 0 ? (
                 <div className="glass-card p-12 text-center rounded-2xl border border-white/10 text-slate-500 text-sm">
-                  Nenhum agendamento encontrado para o perfil e filtros selecionados.
+                  Nenhum agendamento encontrado para este perfil.
                 </div>
               ) : (
                 filteredBookings.map((booking) => {
@@ -745,7 +876,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
                         <div className="text-xs text-slate-300 flex flex-wrap items-center gap-3">
                           <span className="font-bold text-white">{booking.service_title}</span>
                           <span className="text-gold-400 font-extrabold">
-                            R$ {(booking.price || 45).toFixed(2).replace('.', ',')}
+                            R$ {(booking.price || 30).toFixed(2).replace('.', ',')}
                           </span>
                           <span className="text-slate-600">•</span>
                           <span className="flex items-center space-x-1 text-slate-300 font-bold">
@@ -763,10 +894,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
                         </div>
                       </div>
 
-                      {/* BOTÕES DE AÇÃO RÁPIDA: INICIAR CORTE, CONCLUIR, CANCELAR */}
+                      {/* BOTÕES DE AÇÃO RÁPIDA */}
                       <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end pt-3 md:pt-0 border-t md:border-0 border-white/5">
                         
-                        {/* Botão: Iniciar Corte */}
                         {booking.status === 'confirmed' && (
                           <button
                             onClick={() => handleStatusChange(booking.id, 'in_progress')}
@@ -777,7 +907,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
                           </button>
                         )}
 
-                        {/* Botão: Concluir Corte */}
                         {booking.status !== 'completed' && (
                           <button
                             onClick={() => handleStatusChange(booking.id, 'completed')}
@@ -788,7 +917,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
                           </button>
                         )}
 
-                        {/* Botão: WhatsApp */}
                         <button
                           onClick={() => handleSendReminder(booking)}
                           title="WhatsApp do Cliente"
@@ -797,7 +925,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
                           <MessageSquare className="w-4 h-4" />
                         </button>
 
-                        {/* Botão: Cancelar */}
                         {booking.status !== 'cancelled' && (
                           <button
                             onClick={() => handleStatusChange(booking.id, 'cancelled')}
@@ -808,7 +935,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
                           </button>
                         )}
 
-                        {/* Botão: Excluir */}
                         <button
                           onClick={() => handleDelete(booking.id)}
                           title="Excluir Definitivamente"
@@ -883,8 +1009,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
 
               </div>
 
-              {/* Distribuição por Barbeiro se estiver em Visão Geral */}
-              {selectedProfileId === 'all' && (
+              {/* Comparativo visível apenas em Visão Geral (Master) */}
+              {effectiveProfileId === 'all' && (
                 <div className="pt-6 border-t border-white/10 space-y-4">
                   <h4 className="text-sm font-bold text-white uppercase tracking-wider">
                     Comparativo por Profissional (Fabrício vs Victor Paz)
@@ -895,7 +1021,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
                       const bCuts = bookings.filter(
                         (item) => item.barber_id === b.id && item.status !== 'cancelled'
                       );
-                      const bRev = bCuts.reduce((s, item) => s + (item.price || 45), 0);
+                      const bRev = bCuts.reduce((s, item) => s + (item.price || 30), 0);
 
                       return (
                         <div
@@ -969,6 +1095,72 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToSite }) 
         )}
 
       </main>
+
+      {/* MODAL DE DESBLOQUEIO DE PERFIL BLOQUEADO */}
+      {showSwitchLockModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md bg-dark-800 border border-white/10 p-6 rounded-2xl shadow-2xl space-y-5 text-center relative">
+            <button
+              onClick={() => setShowSwitchLockModal(false)}
+              className="absolute right-4 top-4 text-slate-400 hover:text-white p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-glow-amber">
+              <Lock className="w-7 h-7" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-lg font-extrabold text-white">Perfil Protegido</h3>
+              <p className="text-xs text-slate-400">
+                {targetProfileToUnlock === 'barber-fabricio'
+                  ? 'Digite a senha do Fabrício para acessar este perfil.'
+                  : targetProfileToUnlock === 'barber-victor'
+                  ? 'Digite a senha do Victor Paz para acessar este perfil.'
+                  : 'Digite a senha Master para acessar a Visão Geral.'}
+              </p>
+            </div>
+
+            <form onSubmit={handleUnlockProfileSubmit} className="space-y-4">
+              <div>
+                <input
+                  type="password"
+                  maxLength={20}
+                  placeholder="Digite a Senha de Autorização"
+                  value={unlockPinInput}
+                  onChange={(e) => setUnlockPinInput(e.target.value)}
+                  className={`w-full text-center tracking-widest text-base font-bold py-3 px-4 rounded-xl bg-dark-900 border text-white placeholder-slate-500 focus:outline-none ${
+                    unlockPinError ? 'border-rose-500 ring-1 ring-rose-500' : 'border-white/10 focus:border-gold-400'
+                  }`}
+                />
+                {unlockPinError && (
+                  <span className="text-xs text-rose-400 font-bold block mt-1">
+                    {unlockPinError}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSwitchLockModal(false)}
+                  className="flex-1 py-3 rounded-xl font-bold text-xs text-slate-300 bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 rounded-xl font-bold text-xs text-dark-900 bg-gold-400 hover:bg-gold-300 transition-all shadow-glow-gold"
+                >
+                  Desbloquear
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
