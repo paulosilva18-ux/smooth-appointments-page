@@ -14,74 +14,109 @@ export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
-// Barbeiros Padrão da Barbearia
+// Barbeiros Padrão da Barbearia (Dados do Lovable)
 export const DEFAULT_BARBERS: Barber[] = [
   {
     id: 'barber-fabricio',
     name: 'Fabrício',
     email: 'fabricio@barbearia.com',
     avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
-    phone: '(81) 98756-3348',
-    bio: 'Especialista em Degradê Moderno e Visagismo Masculino.'
+    phone: '(81) 99202-2522',
+    bio: 'Especialista em Degradê Moderno, Corte e Visagismo Masculino.'
   },
   {
     id: 'barber-victor',
     name: 'Victor Paz',
     email: 'victorpaz@barbearia.com',
     avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
-    phone: '(81) 99887-1122',
-    bio: 'Mestre em Barba Clássica, Toalha Quente e Pigmentação.'
+    phone: '(81) 98931-2949',
+    bio: 'Mestre em Barba Clássica, Barba Terapia, Pigmentação e Luzes.'
   }
 ];
 
-// Serviços Padrão
+// Serviços Padrão Atualizados (Catálogo Oficial do Lovable)
 export const DEFAULT_SERVICES: Service[] = [
   {
     id: 'srv-corte',
-    title: 'Corte de Cabelo',
-    description: 'Corte tradicional ou moderno (máquina/tesoura) finalizado com lavagem e pomada modeladora.',
-    price: 45,
-    duration_min: 30,
+    title: 'Corte',
+    description: 'Máquina, tesoura e acabamento impecável na navalha.',
+    price: 30,
+    duration_min: 40,
     image_url: '/images/corte_cabelo.png',
     active: true
   },
   {
-    id: 'srv-combo',
-    title: 'Corte + Barba',
-    description: 'Combo completo de corte de cabelo e alinhamento de barba com terapia de toalha morna.',
-    price: 80,
+    id: 'srv-corte-barba',
+    title: 'Corte com Barba',
+    description: 'Combo de corte de cabelo e alinhamento completo de barba.',
+    price: 40,
     duration_min: 60,
     image_url: '/images/corte_barba.png',
     active: true
   },
   {
-    id: 'srv-pigmentacao',
-    title: 'Pigmentação',
-    description: 'Disfarce ou preenchimento natural de falhas no cabelo ou na barba com técnica de degradê.',
-    price: 55,
-    duration_min: 45,
+    id: 'srv-corte-pigmentacao',
+    title: 'Corte com Pigmentação',
+    description: 'Corte com disfarce e preenchimento de falhas de degradê natural.',
+    price: 60,
+    duration_min: 70,
     image_url: '/images/pigmentacao.png',
     active: true
   },
   {
-    id: 'srv-toalha',
-    title: 'Toalha Quente',
-    description: 'Relaxamento facial, esfoliação leve e preparo térmico dos poros para um barbear impecável.',
-    price: 40,
-    duration_min: 30,
+    id: 'srv-corte-barba-pigmentacao',
+    title: 'Corte com Barba e Pigmentação',
+    description: 'Pacote completo premium: corte, barba alinhada e pigmentação.',
+    price: 70,
+    duration_min: 90,
+    image_url: '/images/corte_barba.png',
+    active: true
+  },
+  {
+    id: 'srv-corte-luzes',
+    title: 'Corte com Luzes',
+    description: 'Corte estilizado com descoloração e luzes com tonalização.',
+    price: 100,
+    duration_min: 150,
     image_url: '/images/toalha_quente.png',
+    active: true
+  },
+  {
+    id: 'srv-barba',
+    title: 'Barba',
+    description: 'Desenho e alinhamento tradicional de barba na navalha.',
+    price: 20,
+    duration_min: 25,
+    image_url: '/images/corte_barba.png',
+    active: true
+  },
+  {
+    id: 'srv-barba-terapia',
+    title: 'Barba Terapia com Toalha Quente',
+    description: 'Ritual completo com toalha quente, esfoliação facial e hidratação.',
+    price: 60,
+    duration_min: 90,
+    image_url: '/images/toalha_quente.png',
+    active: true
+  },
+  {
+    id: 'srv-sobrancelha',
+    title: 'Sobrancelha',
+    description: 'Design e alinhamento de sobrancelha masculina na navalha.',
+    price: 10,
+    duration_min: 20,
+    image_url: '/images/corte_cabelo.png',
     active: true
   }
 ];
 
-const LOCAL_STORAGE_BOOKINGS_KEY = 'barbearia_bookings_v2';
+const LOCAL_STORAGE_BOOKINGS_KEY = 'barbearia_bookings_v3';
 
 // Gera dados mockados de teste realistas para Fabrício e Victor Paz
 export function getSampleBookings(): Booking[] {
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
   
-  // Datas recentes para relatório semanal/mensal
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayStr = yesterday.toISOString().split('T')[0];
@@ -98,14 +133,14 @@ export function getSampleBookings(): Booking[] {
     // --- Fabrício ---
     {
       id: 'bkg-fab-01',
-      service_id: 'srv-combo',
-      service_title: 'Corte + Barba',
+      service_id: 'srv-corte-barba',
+      service_title: 'Corte com Barba',
       client_name: 'Lucas Andrade',
       client_phone: '(81) 99123-4567',
       booking_date: todayStr,
       booking_time: '09:00',
       status: 'completed',
-      price: 80,
+      price: 40,
       barber_id: 'barber-fabricio',
       barber_name: 'Fabrício',
       notes: 'Preferência por degradê navalhado',
@@ -114,101 +149,72 @@ export function getSampleBookings(): Booking[] {
     {
       id: 'bkg-fab-02',
       service_id: 'srv-corte',
-      service_title: 'Corte de Cabelo',
+      service_title: 'Corte',
       client_name: 'Gabriel Menezes',
       client_phone: '(81) 98877-6655',
       booking_date: todayStr,
       booking_time: '10:30',
       status: 'in_progress',
-      price: 45,
+      price: 30,
       barber_id: 'barber-fabricio',
       barber_name: 'Fabrício',
-      notes: 'Manter a parte de cima mais alta',
+      notes: 'Manter o topo mais alto',
       created_at: new Date(today.getTime() - 80000).toISOString()
     },
     {
       id: 'bkg-fab-03',
-      service_id: 'srv-pigmentacao',
-      service_title: 'Pigmentação',
+      service_id: 'srv-corte-pigmentacao',
+      service_title: 'Corte com Pigmentação',
       client_name: 'Matheus Silva',
       client_phone: '(81) 97766-5544',
       booking_date: todayStr,
       booking_time: '14:00',
       status: 'confirmed',
-      price: 55,
+      price: 60,
       barber_id: 'barber-fabricio',
       barber_name: 'Fabrício',
-      notes: 'Primeira vez no salão',
       created_at: new Date(today.getTime() - 50000).toISOString()
     },
     {
       id: 'bkg-fab-04',
-      service_id: 'srv-combo',
-      service_title: 'Corte + Barba',
+      service_id: 'srv-corte-barba-pigmentacao',
+      service_title: 'Corte com Barba e Pigmentação',
       client_name: 'Rodrigo Alves',
       client_phone: '(81) 96655-4433',
       booking_date: todayStr,
       booking_time: '16:00',
       status: 'confirmed',
-      price: 80,
+      price: 70,
       barber_id: 'barber-fabricio',
       barber_name: 'Fabrício',
       created_at: new Date(today.getTime() - 30000).toISOString()
     },
     {
       id: 'bkg-fab-05',
-      service_id: 'srv-corte',
-      service_title: 'Corte de Cabelo',
+      service_id: 'srv-corte-luzes',
+      service_title: 'Corte com Luzes',
       client_name: 'Felipe Santos',
       client_phone: '(81) 95544-3322',
       booking_date: yesterdayStr,
       booking_time: '11:00',
       status: 'completed',
-      price: 45,
+      price: 100,
       barber_id: 'barber-fabricio',
       barber_name: 'Fabrício',
       created_at: new Date(yesterday.getTime()).toISOString()
-    },
-    {
-      id: 'bkg-fab-06',
-      service_id: 'srv-combo',
-      service_title: 'Corte + Barba',
-      client_name: 'Eduardo Costa',
-      client_phone: '(81) 94433-2211',
-      booking_date: threeDaysAgoStr,
-      booking_time: '15:30',
-      status: 'completed',
-      price: 80,
-      barber_id: 'barber-fabricio',
-      barber_name: 'Fabrício',
-      created_at: new Date(threeDaysAgo.getTime()).toISOString()
-    },
-    {
-      id: 'bkg-fab-07',
-      service_id: 'srv-toalha',
-      service_title: 'Toalha Quente',
-      client_name: 'Thiago Oliveira',
-      client_phone: '(81) 93322-1100',
-      booking_date: fiveDaysAgoStr,
-      booking_time: '17:00',
-      status: 'completed',
-      price: 40,
-      barber_id: 'barber-fabricio',
-      barber_name: 'Fabrício',
-      created_at: new Date(fiveDaysAgo.getTime()).toISOString()
     },
 
     // --- Victor Paz ---
     {
       id: 'bkg-vic-01',
-      service_id: 'srv-toalha',
-      service_title: 'Toalha Quente',
+      service_id: 'srv-barba-terapia',
+      service_title: 'Barba Terapia com Toalha Quente',
       client_name: 'Bruno Ramos',
       client_phone: '(81) 92211-0099',
       booking_date: todayStr,
       booking_time: '09:30',
       status: 'completed',
-      price: 40,
+      price: 60,
       barber_id: 'barber-victor',
       barber_name: 'Victor Paz',
       notes: 'Pele sensível',
@@ -216,59 +222,45 @@ export function getSampleBookings(): Booking[] {
     },
     {
       id: 'bkg-vic-02',
-      service_id: 'srv-combo',
-      service_title: 'Corte + Barba',
+      service_id: 'srv-corte-barba',
+      service_title: 'Corte com Barba',
       client_name: 'Daniel Figueiredo',
       client_phone: '(81) 91100-9988',
       booking_date: todayStr,
       booking_time: '11:00',
       status: 'confirmed',
-      price: 80,
+      price: 40,
       barber_id: 'barber-victor',
       barber_name: 'Victor Paz',
       created_at: new Date(today.getTime() - 70000).toISOString()
     },
     {
       id: 'bkg-vic-03',
-      service_id: 'srv-corte',
-      service_title: 'Corte de Cabelo',
+      service_id: 'srv-barba',
+      service_title: 'Barba',
       client_name: 'Alexandre Souza',
       client_phone: '(81) 90099-8877',
       booking_date: todayStr,
       booking_time: '15:00',
       status: 'confirmed',
-      price: 45,
+      price: 20,
       barber_id: 'barber-victor',
       barber_name: 'Victor Paz',
       created_at: new Date(today.getTime() - 40000).toISOString()
     },
     {
       id: 'bkg-vic-04',
-      service_id: 'srv-pigmentacao',
-      service_title: 'Pigmentação',
+      service_id: 'srv-corte-pigmentacao',
+      service_title: 'Corte com Pigmentação',
       client_name: 'Renato Lima',
       client_phone: '(81) 98989-7777',
       booking_date: yesterdayStr,
       booking_time: '14:30',
       status: 'completed',
-      price: 55,
+      price: 60,
       barber_id: 'barber-victor',
       barber_name: 'Victor Paz',
       created_at: new Date(yesterday.getTime()).toISOString()
-    },
-    {
-      id: 'bkg-vic-05',
-      service_id: 'srv-combo',
-      service_title: 'Corte + Barba',
-      client_name: 'Caio Martins',
-      client_phone: '(81) 97878-6666',
-      booking_date: threeDaysAgoStr,
-      booking_time: '10:00',
-      status: 'completed',
-      price: 80,
-      barber_id: 'barber-victor',
-      barber_name: 'Victor Paz',
-      created_at: new Date(threeDaysAgo.getTime()).toISOString()
     }
   ];
 }
