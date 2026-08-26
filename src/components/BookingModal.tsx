@@ -1,8 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Clock, User, Phone, CheckCircle2, ArrowRight, ArrowLeft, Scissors, MessageSquare, AlertCircle } from 'lucide-react';
-import { Service, Booking } from '../types';
-import { createBooking, getBookings } from '../lib/supabase';
-import { format, addDays, isSameDay } from 'date-fns';
+import {
+  X,
+  Calendar,
+  Clock,
+  User,
+  Phone,
+  CheckCircle2,
+  ArrowRight,
+  ArrowLeft,
+  Scissors,
+  MessageSquare,
+  AlertCircle,
+  UserCheck,
+  Sparkles
+} from 'lucide-react';
+import { Service, Booking, Barber } from '../types';
+import { createBooking, getBookings, DEFAULT_BARBERS } from '../lib/supabase';
+import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface BookingModalProps {
@@ -19,8 +33,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   initialService
 }) => {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
-  const [selectedService, setSelectedService] = useState<Service | null>(initialService || services[0] || null);
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedService, setSelectedService] = useState<Service | null>(
+    initialService || services[0] || null
+  );
+  const [selectedBarber, setSelectedBarber] = useState<Barber | null>(null); // null = Qualquer Barbeiro
+  const [selectedDate, setSelectedDate] = useState<string>(
+    new Date().toISOString().split('T')[0]
+  );
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [clientName, setClientName] = useState<string>('');
   const [clientPhone, setClientPhone] = useState<string>('');
@@ -53,7 +72,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       dayNumber: format(d, 'dd'),
       monthName: format(d, 'MMM', { locale: ptBR }),
       isSunday: d.getDay() === 0,
-      isMonday: d.getDay() === 1,
+      isMonday: d.getDay() === 1
     };
   });
 
@@ -77,11 +96,20 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
   const allSlots = generateSlots();
 
-  // Check if a time slot is already booked for the selected date
+  // Check if a time slot is already booked for the selected date & barber
   const isSlotBooked = (time: string) => {
-    return existingBookings.some(
-      (b) => b.booking_date === selectedDate && b.booking_time === time && b.status !== 'cancelled'
-    );
+    return existingBookings.some((b) => {
+      const sameDateAndTime =
+        b.booking_date === selectedDate &&
+        b.booking_time === time &&
+        b.status !== 'cancelled';
+      if (!sameDateAndTime) return false;
+      // If a specific barber is selected, check if that barber is already booked
+      if (selectedBarber) {
+        return b.barber_id === selectedBarber.id;
+      }
+      return true;
+    });
   };
 
   // Format Phone Mask: (XX) XXXXX-XXXX
@@ -112,12 +140,13 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     }
     const text = encodeURIComponent(
       `👋 *Olá! Gostaria de confirmar meu agendamento na Barbearia Royal:*\n\n` +
+      `✂️ *Barbeiro:* ${booking.barber_name || 'Fabrício'}\n` +
       `📌 *Serviço:* ${booking.service_title}\n` +
       `📅 *Data:* ${formattedDate}\n` +
       `⏰ *Horário:* ${booking.booking_time}\n` +
       `👤 *Cliente:* ${booking.client_name}\n` +
       `📱 *WhatsApp:* ${booking.client_phone}\n` +
-      `💰 *Valor:* R$ ${service.price.toFixed(2).replace('.', ',')}\n\n` +
+      `💰 *Valor:* R$ ${(booking.price || service.price).toFixed(2).replace('.', ',')}\n\n` +
       `Obrigado!`
     );
     const barberPhone = '5581987563348';
@@ -132,6 +161,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
     setLoading(true);
 
+    const chosenBarber = selectedBarber || DEFAULT_BARBERS[0];
+
     const bookingData = {
       service_id: selectedService.id,
       service_title: selectedService.title,
@@ -139,41 +170,28 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       client_phone: clientPhone,
       booking_date: selectedDate,
       booking_time: selectedTime,
-      notes: notes
+      notes: notes,
+      price: selectedService.price,
+      barber_id: chosenBarber.id,
+      barber_name: chosenBarber.name
     };
 
-    // Fallback local garantido
-    const localFallback: Booking = {
-      ...bookingData,
-      id: 'bkg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
-      status: 'confirmed',
-      created_at: new Date().toISOString()
-    };
-
-    let result: Booking = localFallback;
-
+    let result: Booking;
     try {
       result = await createBooking(bookingData);
     } catch (e) {
-      console.warn('createBooking falhou, usando fallback local:', e);
-      try {
-        const raw = localStorage.getItem('barbearia_bookings_v1');
-        const existing: Booking[] = raw ? JSON.parse(raw) : [];
-        localStorage.setItem('barbearia_bookings_v1', JSON.stringify([localFallback, ...existing]));
-      } catch (_) {}
+      console.warn('createBooking falhou, gerando fallback:', e);
+      result = {
+        ...bookingData,
+        id: 'bkg-' + Date.now(),
+        status: 'confirmed',
+        created_at: new Date().toISOString()
+      };
     }
 
     setCompletedBooking(result);
     setStep(4);
     setLoading(false);
-    // WhatsApp é aberto pelo botão na tela de confirmação (sem redirecionamento automático)
-  };
-
-  // Open WhatsApp link with pre-filled message
-  const handleSendWhatsApp = () => {
-    if (!completedBooking || !selectedService) return;
-    const waUrl = getWhatsAppUrl(completedBooking, selectedService);
-    window.open(waUrl, '_blank');
   };
 
   const resetAndClose = () => {
@@ -182,6 +200,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     setClientName('');
     setClientPhone('');
     setNotes('');
+    setSelectedBarber(null);
     setCompletedBooking(null);
     onClose();
   };
@@ -210,7 +229,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           <div className="px-6 py-3 bg-dark-900/40 border-b border-white/5 flex items-center justify-between text-xs font-semibold">
             <div className={`flex items-center space-x-1.5 ${step >= 1 ? 'text-gold-400' : 'text-slate-500'}`}>
               <span className="w-5 h-5 rounded-full border flex items-center justify-center text-[10px]">1</span>
-              <span>Serviço</span>
+              <span>Serviço & Barbeiro</span>
             </div>
             <div className="w-8 h-[1px] bg-white/10"></div>
             <div className={`flex items-center space-x-1.5 ${step >= 2 ? 'text-gold-400' : 'text-slate-500'}`}>
@@ -228,56 +247,119 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
 
-          {/* STEP 1: SERVICE SELECTION */}
+          {/* STEP 1: SERVICE & BARBER SELECTION */}
           {step === 1 && (
-            <div className="space-y-4">
-              <h4 className="text-base font-bold text-white">Selecione o Serviço Desejado:</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {services.map((service) => {
-                  const isSelected = selectedService?.id === service.id;
-                  return (
-                    <div
-                      key={service.id}
-                      onClick={() => setSelectedService(service)}
-                      className={`p-4 rounded-xl border cursor-pointer transition-all flex items-start space-x-3 ${
-                        isSelected
-                          ? 'border-gold-500 bg-gold-500/10 shadow-glow-gold'
-                          : 'border-white/10 bg-dark-900/50 hover:border-white/20'
-                      }`}
-                    >
-                      <img
-                        src={service.image_url}
-                        alt={service.title}
-                        className="w-14 h-14 rounded-lg object-cover"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h5 className="font-bold text-sm text-white">{service.title}</h5>
-                          <span className="text-xs font-extrabold text-gold-400">
-                            R$ {service.price.toFixed(2).replace('.', ',')}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-400 line-clamp-2 mt-1">{service.description}</p>
-                        <div className="mt-2 text-[10px] text-slate-400 flex items-center space-x-1">
-                          <Clock className="w-3 h-3 text-gold-400" />
-                          <span>{service.duration_min} minutos</span>
+            <div className="space-y-6">
+              
+              {/* Service Selection */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-bold text-white uppercase tracking-wider text-slate-300">
+                  1. Selecione o Serviço:
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {services.map((service) => {
+                    const isSelected = selectedService?.id === service.id;
+                    return (
+                      <div
+                        key={service.id}
+                        onClick={() => setSelectedService(service)}
+                        className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-start space-x-3 ${
+                          isSelected
+                            ? 'border-gold-500 bg-gold-500/10 shadow-glow-gold'
+                            : 'border-white/10 bg-dark-900/50 hover:border-white/20'
+                        }`}
+                      >
+                        <img
+                          src={service.image_url}
+                          alt={service.title}
+                          className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h5 className="font-bold text-sm text-white truncate">{service.title}</h5>
+                            <span className="text-xs font-extrabold text-gold-400 flex-shrink-0 ml-1">
+                              R$ {service.price.toFixed(2).replace('.', ',')}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">{service.description}</p>
+                          <div className="mt-1.5 text-[10px] text-slate-400 flex items-center space-x-1">
+                            <Clock className="w-3 h-3 text-gold-400" />
+                            <span>{service.duration_min} min</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
+
+              {/* Barber Selection */}
+              <div className="space-y-3 pt-2 border-t border-white/5">
+                <h4 className="text-sm font-bold text-white uppercase tracking-wider text-slate-300 flex items-center justify-between">
+                  <span>2. Escolha o Profissional:</span>
+                  <span className="text-[10px] text-gold-400 font-normal">Fabrício & Victor Paz</span>
+                </h4>
+
+                <div className="grid grid-cols-3 gap-2.5">
+                  {/* Option: Qualquer Barbeiro */}
+                  <div
+                    onClick={() => setSelectedBarber(null)}
+                    className={`p-3 rounded-xl border cursor-pointer text-center transition-all flex flex-col items-center justify-center space-y-1.5 ${
+                      selectedBarber === null
+                        ? 'border-gold-400 bg-gold-500/20 text-white font-bold shadow-glow-gold'
+                        : 'border-white/10 bg-dark-900/60 text-slate-400 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="w-10 h-10 rounded-full bg-gold-500/20 text-gold-400 flex items-center justify-center border border-gold-500/30">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-extrabold text-white block">Qualquer</span>
+                      <span className="text-[9px] text-slate-400 block">Primeiro Livre</span>
+                    </div>
+                  </div>
+
+                  {/* Barbers */}
+                  {DEFAULT_BARBERS.map((barber) => {
+                    const isSelected = selectedBarber?.id === barber.id;
+                    return (
+                      <div
+                        key={barber.id}
+                        onClick={() => setSelectedBarber(barber)}
+                        className={`p-3 rounded-xl border cursor-pointer text-center transition-all flex flex-col items-center justify-center space-y-1.5 ${
+                          isSelected
+                            ? 'border-gold-400 bg-gold-500/20 text-white font-bold shadow-glow-gold'
+                            : 'border-white/10 bg-dark-900/60 text-slate-400 hover:border-white/20'
+                        }`}
+                      >
+                        <img
+                          src={barber.avatar_url}
+                          alt={barber.name}
+                          className="w-10 h-10 rounded-full object-cover border border-white/10"
+                        />
+                        <div>
+                          <span className="text-xs font-extrabold text-white block truncate">{barber.name}</span>
+                          <span className="text-[9px] text-gold-400 block">Barbeiro</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
             </div>
           )}
 
           {/* STEP 2: DATE & TIME SELECTION */}
           {step === 2 && (
             <div className="space-y-6">
-              {/* Selected service summary pill */}
+              {/* Selected summary pill */}
               <div className="p-3 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-between">
                 <div>
-                  <span className="text-xs text-gold-400 font-bold block">Serviço Selecionado:</span>
-                  <span className="text-sm font-extrabold text-white">{selectedService?.title}</span>
+                  <span className="text-xs text-gold-400 font-bold block">Resumo do Agendamento:</span>
+                  <span className="text-sm font-extrabold text-white">
+                    {selectedService?.title} — {selectedBarber ? selectedBarber.name : 'Fabrício / Victor Paz'}
+                  </span>
                 </div>
                 <span className="text-sm font-bold text-gold-400">
                   R$ {selectedService?.price.toFixed(2).replace('.', ',')}
@@ -359,6 +441,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               {/* Summary box */}
               <div className="p-4 rounded-xl bg-dark-900/80 border border-white/10 space-y-2 text-xs">
                 <div className="flex justify-between text-slate-300">
+                  <span>Profissional:</span>
+                  <span className="font-bold text-gold-400">
+                    {selectedBarber ? selectedBarber.name : 'Fabrício / Victor Paz (Atribuição Automática)'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-slate-300">
                   <span>Serviço:</span>
                   <span className="font-bold text-white">{selectedService?.title}</span>
                 </div>
@@ -368,7 +456,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                 </div>
                 <div className="flex justify-between text-slate-300 pt-2 border-t border-white/5">
                   <span>Valor Total:</span>
-                  <span className="font-extrabold text-white text-sm">R$ {selectedService?.price.toFixed(2).replace('.', ',')}</span>
+                  <span className="font-extrabold text-white text-sm">
+                    R$ {selectedService?.price.toFixed(2).replace('.', ',')}
+                  </span>
                 </div>
               </div>
 
@@ -394,7 +484,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
                     <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
                     <input
                       type="text"
-                      placeholder="(11) 99999-9999"
+                      placeholder="(81) 99999-9999"
                       value={clientPhone}
                       onChange={handlePhoneChange}
                       className="w-full pl-10 pr-4 py-3 rounded-xl bg-dark-900 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-gold-400 text-sm"
@@ -431,12 +521,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <div className="space-y-2">
                 <h4 className="text-2xl font-extrabold text-white">Agendamento Confirmado!</h4>
                 <p className="text-sm text-slate-300 max-w-md mx-auto">
-                  Seu horário foi reservado com sucesso no nosso sistema.
+                  Seu horário com <strong className="text-gold-400">{completedBooking.barber_name}</strong> foi reservado com sucesso.
                 </p>
               </div>
 
               {/* Summary Card */}
               <div className="glass-card p-5 rounded-2xl border border-white/10 text-left max-w-md mx-auto space-y-3">
+                <div className="flex justify-between border-b border-white/5 pb-2 text-xs">
+                  <span className="text-slate-400">Barbeiro:</span>
+                  <span className="font-bold text-gold-400">{completedBooking.barber_name}</span>
+                </div>
                 <div className="flex justify-between border-b border-white/5 pb-2 text-xs">
                   <span className="text-slate-400">Cliente:</span>
                   <span className="font-bold text-white">{completedBooking.client_name}</span>

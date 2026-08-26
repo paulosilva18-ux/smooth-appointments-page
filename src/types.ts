@@ -1,3 +1,12 @@
+export interface Barber {
+  id: string;
+  name: string;
+  email: string;
+  avatar_url: string;
+  phone?: string;
+  bio?: string;
+}
+
 export interface Service {
   id: string;
   title: string;
@@ -16,8 +25,11 @@ export interface Booking {
   client_phone: string;
   booking_date: string; // YYYY-MM-DD
   booking_time: string; // HH:mm
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
   notes?: string;
+  price?: number;
+  barber_id?: string;
+  barber_name?: string;
   created_at: string;
 }
 

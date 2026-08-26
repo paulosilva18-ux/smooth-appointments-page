@@ -5,6 +5,7 @@ import { ServicesSection } from './components/ServicesSection';
 import { BookingModal } from './components/BookingModal';
 import { Footer } from './components/Footer';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { FabricioAdminDashboard } from './pages/FabricioAdminDashboard';
 import { Service } from './types';
 import { getServices, isSupabaseConfigured } from './lib/supabase';
 import { Database, CheckCircle2, ShieldCheck, ExternalLink } from 'lucide-react';
@@ -42,6 +43,15 @@ export function App() {
     setSelectedService(services[0] || null);
     setIsBookingOpen(true);
   };
+
+  // Rota /fabricio-admin — painel dedicado Fabrício Barbeiro
+  if (currentPath.startsWith('/fabricio-admin')) {
+    return (
+      <FabricioAdminDashboard
+        onBackToSite={() => navigateTo('/')}
+      />
+    );
+  }
 
   // Detect if path starts with /admin or hostname contains admin
   const isAdminDomainOrPath =
