@@ -5,6 +5,7 @@ export const HORARIOS = [
   "10:30",
   "11:00",
   "11:30",
+  "12:00",
   "14:00",
   "14:30",
   "15:00",
@@ -15,6 +16,7 @@ export const HORARIOS = [
   "17:30",
   "18:00",
   "18:30",
+  "19:00",
 ];
 
 /** Horários disponíveis por barbeiro. */
@@ -26,6 +28,7 @@ export const HORARIOS_POR_BARBEIRO: Record<string, string[]> = {
     "10:30",
     "11:00",
     "11:30",
+    "12:00",
     "14:00",
     "14:30",
     "15:00",
@@ -36,6 +39,7 @@ export const HORARIOS_POR_BARBEIRO: Record<string, string[]> = {
     "17:30",
     "18:00",
     "18:30",
+    "19:00",
   ],
   "Victor Paz": [
     "10:00",
@@ -44,6 +48,7 @@ export const HORARIOS_POR_BARBEIRO: Record<string, string[]> = {
     "11:30",
     "12:00",
     "12:30",
+    "13:00",
     "15:00",
     "15:30",
     "16:00",
@@ -52,6 +57,7 @@ export const HORARIOS_POR_BARBEIRO: Record<string, string[]> = {
     "17:30",
     "18:00",
     "18:30",
+    "19:00",
   ],
 };
 
