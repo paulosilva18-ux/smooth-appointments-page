@@ -31,17 +31,47 @@ export const listarHorariosOcupados = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("agendamentos")
-      .select("hora")
+      .select("hora, servico")
       .eq("barbeiro", data.barbeiro)
       .eq("data", data.data);
     if (error) throw new Error(error.message);
-    return (rows ?? []).map((r) => r.hora);
+    return (rows ?? []).map((r) => ({ hora: r.hora, servico: r.servico ?? "" }));
   });
+
+/** Verifica no servidor se o intervalo desejado conflita com outra reserva. */
+async function existeConflito(
+  barbeiro: string,
+  dataDia: string,
+  hora: string,
+  servico: string,
+  ignorarId?: string,
+) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { horaParaMinutos, duracaoServico } = await import("@/lib/duracao");
+  let q = supabaseAdmin
+    .from("agendamentos")
+    .select("id, hora, servico")
+    .eq("barbeiro", barbeiro)
+    .eq("data", dataDia);
+  if (ignorarId) q = q.neq("id", ignorarId);
+  const { data: rows, error } = await q;
+  if (error) throw new Error(error.message);
+  const inicio = horaParaMinutos(hora);
+  const dur = duracaoServico(servico);
+  return (rows ?? []).some((r) => {
+    const i = horaParaMinutos(r.hora);
+    const d = duracaoServico(r.servico ?? "");
+    return inicio < i + d && i < inicio + dur;
+  });
+}
 
 export const criarAgendamento = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => criarInput.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (await existeConflito(data.barbeiro, data.data, data.hora, data.servico)) {
+      return { ok: false as const, motivo: "ocupado" as const };
+    }
     const { data: row, error } = await supabaseAdmin
       .from("agendamentos")
       .insert({
@@ -104,13 +134,18 @@ export const reagendarAgendamento = createServerFn({ method: "POST" })
     const { dentroDaJanela } = await import("@/lib/horarios");
     const { data: atual, error: erroBusca } = await supabaseAdmin
       .from("agendamentos")
-      .select("data, hora")
+      .select("data, hora, servico, barbeiro")
       .eq("id", data.id)
       .maybeSingle();
     if (erroBusca) throw new Error(erroBusca.message);
     if (!atual) return { ok: false as const, motivo: "inexistente" as const };
     if (!dentroDaJanela(atual.data, atual.hora) || !dentroDaJanela(data.data, data.hora)) {
       return { ok: false as const, motivo: "prazo" as const };
+    }
+    if (
+      await existeConflito(atual.barbeiro, data.data, data.hora, atual.servico ?? "", data.id)
+    ) {
+      return { ok: false as const, motivo: "ocupado" as const };
     }
     const { data: row, error } = await supabaseAdmin
       .from("agendamentos")
