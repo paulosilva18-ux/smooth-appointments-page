@@ -40,7 +40,12 @@ export const Route = createFileRoute("/")({
 const MAPS = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ENDERECO)}`;
 
 
+import { useCatalogo } from "@/lib/useCatalogo";
+
 function Index() {
+  const catalogo = useCatalogo();
+  const servicos = catalogo.servicos.length ? catalogo.servicos : SERVICOS;
+  const barbeiros = catalogo.barbeiros.length ? catalogo.barbeiros : BARBEIROS;
   const [open, setOpen] = useState(false);
   const [recarregar, setRecarregar] = useState(0);
 
@@ -158,7 +163,7 @@ function Index() {
           </div>
 
           <ul className="divide-y divide-border border-y border-border">
-            {SERVICOS.map((s) => (
+            {servicos.map((s) => (
               <li
                 key={s.nome}
                 className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 py-5"
@@ -233,7 +238,7 @@ function Index() {
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 {ENDERECO}
               </a>
-              {BARBEIROS.map((b) => (
+              {barbeiros.map((b) => (
                 <a
                   key={b.whatsapp}
                   href={`https://wa.me/${b.whatsapp}`}

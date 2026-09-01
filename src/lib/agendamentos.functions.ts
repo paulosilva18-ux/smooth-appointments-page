@@ -25,6 +25,24 @@ const reagendarInput = idInput.extend({
   hora: z.string().min(1).max(10),
 });
 
+/** Bloqueios manuais do barbeiro convertidos em "reservas" de 30 min. */
+async function bloqueiosComoReservas(barbeiro: string, dataDia: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { horariosDoBarbeiro } = await import("@/lib/horarios");
+  const { data: rows } = await supabaseAdmin
+    .from("bloqueios")
+    .select("hora")
+    .eq("barbeiro", barbeiro)
+    .eq("data", dataDia);
+  const lista = rows ?? [];
+  if (lista.some((r) => !r.hora)) {
+    return horariosDoBarbeiro(barbeiro).map((h) => ({ hora: h, servico: "Bloqueado (30 min)" }));
+  }
+  return lista
+    .filter((r): r is { hora: string } => Boolean(r.hora))
+    .map((r) => ({ hora: r.hora, servico: "Bloqueado (30 min)" }));
+}
+
 export const listarHorariosOcupados = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) => slotsInput.parse(data))
   .handler(async ({ data }) => {
@@ -35,7 +53,8 @@ export const listarHorariosOcupados = createServerFn({ method: "GET" })
       .eq("barbeiro", data.barbeiro)
       .eq("data", data.data);
     if (error) throw new Error(error.message);
-    return (rows ?? []).map((r) => ({ hora: r.hora, servico: r.servico ?? "" }));
+    const reservas = (rows ?? []).map((r) => ({ hora: r.hora, servico: r.servico ?? "" }));
+    return [...reservas, ...(await bloqueiosComoReservas(data.barbeiro, data.data))];
   });
 
 /** Verifica no servidor se o intervalo desejado conflita com outra reserva. */
@@ -56,9 +75,10 @@ async function existeConflito(
   if (ignorarId) q = q.neq("id", ignorarId);
   const { data: rows, error } = await q;
   if (error) throw new Error(error.message);
+  const bloqueios = await bloqueiosComoReservas(barbeiro, dataDia);
   const inicio = horaParaMinutos(hora);
   const dur = duracaoServico(servico);
-  return (rows ?? []).some((r) => {
+  return [...(rows ?? []), ...bloqueios].some((r) => {
     const i = horaParaMinutos(r.hora);
     const d = duracaoServico(r.servico ?? "");
     return inicio < i + d && i < inicio + dur;

@@ -44,6 +44,105 @@ export type Database = {
         }
         Relationships: []
       }
+      barbeiros: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          display: string
+          id: string
+          nome: string
+          slug: string
+          updated_at: string
+          whatsapp: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          display?: string
+          id?: string
+          nome: string
+          slug: string
+          updated_at?: string
+          whatsapp?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          display?: string
+          id?: string
+          nome?: string
+          slug?: string
+          updated_at?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
+      bloqueios: {
+        Row: {
+          barbeiro: string
+          created_at: string
+          data: string
+          hora: string | null
+          id: string
+          motivo: string | null
+        }
+        Insert: {
+          barbeiro: string
+          created_at?: string
+          data: string
+          hora?: string | null
+          id?: string
+          motivo?: string | null
+        }
+        Update: {
+          barbeiro?: string
+          created_at?: string
+          data?: string
+          hora?: string | null
+          id?: string
+          motivo?: string | null
+        }
+        Relationships: []
+      }
+      servicos: {
+        Row: {
+          ativo: boolean
+          categoria: string
+          created_at: string
+          descricao: string | null
+          duracao_min: number
+          id: string
+          nome: string
+          ordem: number
+          preco: number
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          categoria: string
+          created_at?: string
+          descricao?: string | null
+          duracao_min?: number
+          id?: string
+          nome: string
+          ordem?: number
+          preco?: number
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string
+          created_at?: string
+          descricao?: string | null
+          duracao_min?: number
+          id?: string
+          nome?: string
+          ordem?: number
+          preco?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
