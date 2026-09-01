@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { SERVICOS, BARBEIROS } from "@/lib/barbearia";
+import { useCatalogo } from "@/lib/useCatalogo";
 import { horariosDoBarbeiro, salvarId, POLITICA_CANCELAMENTO } from "@/lib/horarios";
 import {
   criarAgendamento,
@@ -24,6 +25,10 @@ export function BookingForm({
   onReservado?: () => void;
 }) {
 
+  const catalogo = useCatalogo();
+  const servicos = catalogo.servicos.length ? catalogo.servicos : SERVICOS;
+  const barbeiros = catalogo.barbeiros.length ? catalogo.barbeiros : BARBEIROS;
+
   const [nome, setNome] = useState("");
   const [servico, setServico] = useState<string>(SERVICOS[0]!.nome);
   const [barbeiro, setBarbeiro] = useState<string>(BARBEIROS[0]!.nome);
@@ -40,8 +45,8 @@ export function BookingForm({
   const buscarOcupados = useServerFn(listarHorariosOcupados);
   const agendar = useServerFn(criarAgendamento);
 
-  const selecionado = SERVICOS.find((s) => s.nome === servico);
-  const profissional = BARBEIROS.find((b) => b.nome === barbeiro) ?? BARBEIROS[0]!;
+  const selecionado = servicos.find((s) => s.nome === servico);
+  const profissional = barbeiros.find((b) => b.nome === barbeiro) ?? barbeiros[0]!;
 
   useEffect(() => {
     if (!data) {
@@ -158,7 +163,7 @@ export function BookingForm({
           onChange={(e) => setServico(e.target.value)}
           className={fieldClass}
         >
-          {SERVICOS.map((s) => (
+          {servicos.map((s) => (
             <option key={s.nome} value={s.nome}>
               {s.nome} — {s.tempo} · {s.preco}
             </option>
@@ -169,7 +174,7 @@ export function BookingForm({
       <div>
         <span className={labelClass}>Barbeiro</span>
         <div className="flex flex-wrap gap-2">
-          {BARBEIROS.map((b) => (
+          {barbeiros.map((b) => (
             <button
               key={b.nome}
               type="button"
