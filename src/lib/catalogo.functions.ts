@@ -26,7 +26,7 @@ export const catalogoPublico = createServerFn({ method: "GET" }).handler(async (
               categoria: s.categoria,
               tempo: formatarTempo(s.duracao_min),
               preco: formatarPreco(Number(s.preco)),
-              desc: s.descricao ?? undefined,
+              ...(s.descricao ? { desc: s.descricao } : {}),
             }))
           : CATALOGO_PADRAO.servicos,
       barbeiros:
