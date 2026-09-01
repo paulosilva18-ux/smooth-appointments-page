@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { SERVICOS, BARBEIROS } from "@/lib/barbearia";
-import { HORARIOS, salvarId, POLITICA_CANCELAMENTO } from "@/lib/horarios";
+import { horariosDoBarbeiro, salvarId, POLITICA_CANCELAMENTO } from "@/lib/horarios";
 import {
   criarAgendamento,
   listarHorariosOcupados,
@@ -68,7 +68,8 @@ export function BookingForm({
     if (hora && ocupados.includes(hora)) setHora("");
   }, [ocupados, hora]);
 
-  const livres = HORARIOS.filter((h) => !ocupados.includes(h));
+  const horarios = horariosDoBarbeiro(profissional.nome);
+  const livres = horarios.filter((h) => !ocupados.includes(h));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,7 +205,7 @@ export function BookingForm({
           </p>
         ) : (
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-            {HORARIOS.map((h) => {
+            {horarios.map((h) => {
               const bloqueado = ocupados.includes(h);
               return (
                 <button

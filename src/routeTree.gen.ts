@@ -10,11 +10,6 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as FabricioAdminRouteImport } from './routes/fabricio-admin'
-import { Route as VictorAdminRouteImport } from './routes/victor-admin'
-import { Route as AdminIndexRouteImport } from './routes/admin.index'
-import { Route as AdminBarbeiroRouteImport } from './routes/admin.$barbeiro'
 import { Route as PainelIndexRouteImport } from './routes/painel.index'
 import { Route as PainelBarbeiroRouteImport } from './routes/painel.$barbeiro'
 
@@ -22,31 +17,6 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FabricioAdminRoute = FabricioAdminRouteImport.update({
-  id: '/fabricio-admin',
-  path: '/fabricio-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VictorAdminRoute = VictorAdminRouteImport.update({
-  id: '/victor-admin',
-  path: '/victor-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminBarbeiroRoute = AdminBarbeiroRouteImport.update({
-  id: '/$barbeiro',
-  path: '/$barbeiro',
-  getParentRoute: () => AdminRoute,
 } as any)
 const PainelIndexRoute = PainelIndexRouteImport.update({
   id: '/painel/',
@@ -61,71 +31,30 @@ const PainelBarbeiroRoute = PainelBarbeiroRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
-  '/fabricio-admin': typeof FabricioAdminRoute
-  '/victor-admin': typeof VictorAdminRoute
-  '/admin/$barbeiro': typeof AdminBarbeiroRoute
   '/painel/$barbeiro': typeof PainelBarbeiroRoute
-  '/admin/': typeof AdminIndexRoute
   '/painel/': typeof PainelIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/fabricio-admin': typeof FabricioAdminRoute
-  '/victor-admin': typeof VictorAdminRoute
-  '/admin/$barbeiro': typeof AdminBarbeiroRoute
   '/painel/$barbeiro': typeof PainelBarbeiroRoute
-  '/admin': typeof AdminIndexRoute
   '/painel': typeof PainelIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
-  '/fabricio-admin': typeof FabricioAdminRoute
-  '/victor-admin': typeof VictorAdminRoute
-  '/admin/$barbeiro': typeof AdminBarbeiroRoute
   '/painel/$barbeiro': typeof PainelBarbeiroRoute
-  '/admin/': typeof AdminIndexRoute
   '/painel/': typeof PainelIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/admin'
-    | '/fabricio-admin'
-    | '/victor-admin'
-    | '/admin/$barbeiro'
-    | '/painel/$barbeiro'
-    | '/admin/'
-    | '/painel/'
+  fullPaths: '/' | '/painel/$barbeiro' | '/painel/'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/fabricio-admin'
-    | '/victor-admin'
-    | '/admin/$barbeiro'
-    | '/painel/$barbeiro'
-    | '/admin'
-    | '/painel'
-  id:
-    | '__root__'
-    | '/'
-    | '/admin'
-    | '/fabricio-admin'
-    | '/victor-admin'
-    | '/admin/$barbeiro'
-    | '/painel/$barbeiro'
-    | '/admin/'
-    | '/painel/'
+  to: '/' | '/painel/$barbeiro' | '/painel'
+  id: '__root__' | '/' | '/painel/$barbeiro' | '/painel/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRouteWithChildren
-  FabricioAdminRoute: typeof FabricioAdminRoute
-  VictorAdminRoute: typeof VictorAdminRoute
   PainelBarbeiroRoute: typeof PainelBarbeiroRoute
   PainelIndexRoute: typeof PainelIndexRoute
 }
@@ -138,41 +67,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fabricio-admin': {
-      id: '/fabricio-admin'
-      path: '/fabricio-admin'
-      fullPath: '/fabricio-admin'
-      preLoaderRoute: typeof FabricioAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/victor-admin': {
-      id: '/victor-admin'
-      path: '/victor-admin'
-      fullPath: '/victor-admin'
-      preLoaderRoute: typeof VictorAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/$barbeiro': {
-      id: '/admin/$barbeiro'
-      path: '/$barbeiro'
-      fullPath: '/admin/$barbeiro'
-      preLoaderRoute: typeof AdminBarbeiroRouteImport
-      parentRoute: typeof AdminRoute
     }
     '/painel/': {
       id: '/painel/'
@@ -191,23 +85,8 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AdminRouteChildren {
-  AdminBarbeiroRoute: typeof AdminBarbeiroRoute
-  AdminIndexRoute: typeof AdminIndexRoute
-}
-
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminBarbeiroRoute: AdminBarbeiroRoute,
-  AdminIndexRoute: AdminIndexRoute,
-}
-
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRouteWithChildren,
-  FabricioAdminRoute: FabricioAdminRoute,
-  VictorAdminRoute: VictorAdminRoute,
   PainelBarbeiroRoute: PainelBarbeiroRoute,
   PainelIndexRoute: PainelIndexRoute,
 }
