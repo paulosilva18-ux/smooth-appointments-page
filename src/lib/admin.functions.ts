@@ -157,15 +157,13 @@ export const criarBloqueio = createServerFn({ method: "POST" })
     const { exigirEscopo } = await import("@/lib/painel.server");
     await exigirEscopo(data.barbeiro);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const linhas = data.diaInteiro
-      ? [
-          {
-            barbeiro: data.barbeiro,
-            data: data.data,
-            hora: null,
-            motivo: data.motivo ?? null,
-          },
-        ]
+    const linhas: {
+      barbeiro: string;
+      data: string;
+      hora: string | null;
+      motivo: string | null;
+    }[] = data.diaInteiro
+      ? [{ barbeiro: data.barbeiro, data: data.data, hora: null, motivo: data.motivo ?? null }]
       : data.horas.map((h) => ({
           barbeiro: data.barbeiro,
           data: data.data,
