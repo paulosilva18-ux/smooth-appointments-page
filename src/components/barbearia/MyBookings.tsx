@@ -16,6 +16,7 @@ import {
   reagendarAgendamento,
 } from "@/lib/agendamentos.functions";
 import { avisarWhatsApp, linkWhatsApp } from "@/lib/notificacoes";
+import { duracaoServico, horariosBloqueados, type Reserva } from "@/lib/duracao";
 
 
 type Agendamento = {
@@ -40,7 +41,7 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
   const [editando, setEditando] = useState<string | null>(null);
   const [novaData, setNovaData] = useState("");
   const [novaHora, setNovaHora] = useState("");
-  const [ocupados, setOcupados] = useState<string[]>([]);
+  const [reservas, setReservas] = useState<Reserva[]>([]);
   const [ocupado, setOcupado] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
   const [aviso, setAviso] = useState<{ url: string; label: string } | null>(null);
@@ -75,15 +76,16 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
 
   useEffect(() => {
     if (!item || !novaData) {
-      setOcupados([]);
+      setReservas([]);
       return;
     }
     let ativo = true;
     buscarOcupados({ data: { barbeiro: item.barbeiro, data: novaData } })
       .then((res) => {
-        if (ativo) setOcupados(res.filter((h) => !(novaData === item.data && h === item.hora)));
+        if (ativo)
+          setReservas(res.filter((r) => !(novaData === item.data && r.hora === item.hora)));
       })
-      .catch(() => ativo && setOcupados([]));
+      .catch(() => ativo && setReservas([]));
     return () => {
       ativo = false;
     };
@@ -95,6 +97,12 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
     setNovaHora(a.hora);
     setMensagem(null);
   };
+
+  const bloqueadosEdicao = horariosBloqueados(
+    horariosDoBarbeiro(item?.barbeiro ?? ""),
+    reservas,
+    duracaoServico(item?.servico ?? ""),
+  );
 
   const foraDoPrazoMsg = `Prazo encerrado: só é possível alterar até ${JANELA_CANCELAMENTO_HORAS} h antes. Fale com o barbeiro no WhatsApp.`;
 
@@ -148,7 +156,7 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
       if (!res.ok) {
         setMensagem(
           res.motivo === "ocupado"
-            ? "Esse horário já está reservado. Escolha outro."
+            ? "Esse horário conflita com outra reserva. Escolha outro."
             : res.motivo === "prazo"
               ? foraDoPrazoMsg
               : "Esse agendamento não existe mais.",
@@ -214,7 +222,8 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                     {horariosDoBarbeiro(item?.barbeiro ?? "").map((h) => {
                       const bloqueado =
-                        ocupados.includes(h) || (!!novaData && !dentroDaJanela(novaData, h));
+                        bloqueadosEdicao.includes(h) ||
+                        (!!novaData && !dentroDaJanela(novaData, h));
                       return (
                         <button
                           key={h}

@@ -7,6 +7,7 @@ import {
   listarHorariosOcupados,
 } from "@/lib/agendamentos.functions";
 import { avisarWhatsApp, linkWhatsApp } from "@/lib/notificacoes";
+import { duracaoServico, horariosBloqueados, type Reserva } from "@/lib/duracao";
 
 
 
@@ -29,7 +30,7 @@ export function BookingForm({
 
   const [data, setData] = useState("");
   const [hora, setHora] = useState("");
-  const [ocupados, setOcupados] = useState<string[]>([]);
+  const [reservas, setReservas] = useState<Reserva[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
@@ -44,17 +45,17 @@ export function BookingForm({
 
   useEffect(() => {
     if (!data) {
-      setOcupados([]);
+      setReservas([]);
       return;
     }
     let ativo = true;
     setCarregando(true);
     buscarOcupados({ data: { barbeiro, data } })
       .then((res) => {
-        if (ativo) setOcupados(res);
+        if (ativo) setReservas(res);
       })
       .catch(() => {
-        if (ativo) setOcupados([]);
+        if (ativo) setReservas([]);
       })
       .finally(() => {
         if (ativo) setCarregando(false);
@@ -64,12 +65,14 @@ export function BookingForm({
     };
   }, [barbeiro, data, buscarOcupados]);
 
+  const horarios = horariosDoBarbeiro(profissional.nome);
+  const duracao = duracaoServico(selecionado?.nome ?? servico);
+  const ocupados = horariosBloqueados(horarios, reservas, duracao);
+  const livres = horarios.filter((h) => !ocupados.includes(h));
+
   useEffect(() => {
     if (hora && ocupados.includes(hora)) setHora("");
   }, [ocupados, hora]);
-
-  const horarios = horariosDoBarbeiro(profissional.nome);
-  const livres = horarios.filter((h) => !ocupados.includes(h));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,12 +90,16 @@ export function BookingForm({
         data: { nome, servico: detalhe, barbeiro: profissional.nome, data, hora },
       });
       if (!res.ok) {
-        setMensagem("Esse horário acabou de ser reservado. Escolha outro.");
-        setOcupados((prev) => (prev.includes(hora) ? prev : [...prev, hora]));
+        setMensagem("Esse horário conflita com outra reserva. Escolha outro.");
         setHora("");
+        try {
+          setReservas(await buscarOcupados({ data: { barbeiro: profissional.nome, data } }));
+        } catch {
+          /* mantém a grade atual */
+        }
         return;
       }
-      setOcupados((prev) => [...prev, hora]);
+      setReservas((prev) => [...prev, { hora, servico: detalhe }]);
       salvarId(res.id);
       onReservado?.();
       const aberto = avisarWhatsApp("reserva", {
@@ -260,7 +267,8 @@ export function BookingForm({
 
       <p className="text-center text-xs text-muted-foreground">
 
-        {mensagem ?? "O horário fica bloqueado assim que a reserva é feita."}
+        {mensagem ??
+          `Reservado, o horário e os ${duracao} min do serviço ficam bloqueados na agenda.`}
       </p>
     </form>
   );
