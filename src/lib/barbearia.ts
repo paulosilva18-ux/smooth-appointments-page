@@ -8,8 +8,8 @@ export const INSTAGRAM = "fabriciobarbeiro_oficial";
 export const ENDERECO = "Avenida Mário Leite, 1 — Vila Operária, Escada/PE";
 
 export const HORARIO_FUNCIONAMENTO = [
-  { dias: "Segunda a quinta", horas: ["08:30 – 12:00", "14:00 – 19:00"] },
-  { dias: "Sexta e sábado", horas: ["07:30 – 19:00"] },
+  { dias: "Segunda a quinta", horas: ["09:00 – 12:00", "14:00 – 19:00"] },
+  { dias: "Sexta e sábado", horas: ["08:00 – 19:00"] },
   { dias: "Domingo", horas: ["Fechado"] },
 ];
 
