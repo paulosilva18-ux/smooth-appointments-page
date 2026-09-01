@@ -105,14 +105,25 @@ function AdminPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro(null);
-    const res = await doEntrar({ data: { usuario, senha } });
-    if (!res.ok) {
-      setErro("Usuário ou senha inválidos.");
+    const u = usuario.trim();
+    const s = senha.trim();
+    if (!u || !s) {
+      setErro("Informe usuário e senha.");
       return;
     }
-    setSenha("");
-    qc.invalidateQueries({ queryKey: ["admin-status"] });
+    try {
+      const res = await doEntrar({ data: { usuario: u, senha: s } });
+      if (!res.ok) {
+        setErro("Usuário ou senha inválidos.");
+        return;
+      }
+      setSenha("");
+      qc.invalidateQueries({ queryKey: ["admin-status"] });
+    } catch {
+      setErro("Não foi possível entrar. Tente novamente.");
+    }
   };
+
 
   if (!perfil) {
     return (
