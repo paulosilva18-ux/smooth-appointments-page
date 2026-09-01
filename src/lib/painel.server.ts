@@ -6,11 +6,13 @@ export type PainelSession = { barbeiro?: string };
 export const SLUG_SENHA: Record<string, string> = {
   fabricio: "SENHA_PAINEL_FABRICIO",
   victor: "SENHA_PAINEL_VICTOR",
+  admin: "SENHA_PAINEL_ADMIN",
 };
 
 export const SLUG_NOME: Record<string, string> = {
   fabricio: "Fabrício",
   victor: "Victor Paz",
+  admin: "Administração",
 };
 
 export function sessionConfig() {
