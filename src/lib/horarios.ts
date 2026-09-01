@@ -1,15 +1,63 @@
 export const HORARIOS = [
-  "07:30",
-  "08:30",
+  "09:00",
   "09:30",
+  "10:00",
   "10:30",
   "11:00",
+  "11:30",
   "14:00",
+  "14:30",
   "15:00",
+  "15:30",
   "16:00",
+  "16:30",
   "17:00",
+  "17:30",
   "18:00",
+  "18:30",
 ];
+
+/** Horários disponíveis por barbeiro. */
+export const HORARIOS_POR_BARBEIRO: Record<string, string[]> = {
+  "Fabrício": [
+    "09:00",
+    "09:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
+    "14:00",
+    "14:30",
+    "15:00",
+    "15:30",
+    "16:00",
+    "16:30",
+    "17:00",
+    "17:30",
+    "18:00",
+    "18:30",
+  ],
+  "Victor Paz": [
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
+    "12:00",
+    "12:30",
+    "15:00",
+    "15:30",
+    "16:00",
+    "16:30",
+    "17:00",
+    "17:30",
+    "18:00",
+    "18:30",
+  ],
+};
+
+export function horariosDoBarbeiro(nome: string): string[] {
+  return HORARIOS_POR_BARBEIRO[nome] ?? HORARIOS;
+}
 
 const STORAGE_KEY = "fb-agendamentos";
 

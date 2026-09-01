@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { BARBEIROS } from "@/lib/barbearia";
 import {
-  HORARIOS,
+  horariosDoBarbeiro,
   lidosIds,
   removerId,
   dentroDaJanela,
@@ -212,7 +212,7 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
                     aria-label="Nova data"
                   />
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-                    {HORARIOS.map((h) => {
+                    {horariosDoBarbeiro(item?.barbeiro ?? "").map((h) => {
                       const bloqueado =
                         ocupados.includes(h) || (!!novaData && !dentroDaJanela(novaData, h));
                       return (
