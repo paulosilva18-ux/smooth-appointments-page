@@ -99,7 +99,7 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
   };
 
   const bloqueadosEdicao = horariosBloqueados(
-    horariosDoBarbeiro(item?.barbeiro ?? ""),
+    horariosDoBarbeiro(item?.barbeiro ?? "", novaData || item?.data),
     reservas,
     duracaoServico(item?.servico ?? ""),
   );
@@ -220,7 +220,7 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
                     aria-label="Nova data"
                   />
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-                    {horariosDoBarbeiro(item?.barbeiro ?? "").map((h) => {
+                    {horariosDoBarbeiro(item?.barbeiro ?? "", novaData || item?.data).map((h) => {
                       const bloqueado =
                         bloqueadosEdicao.includes(h) ||
                         (!!novaData && !dentroDaJanela(novaData, h));

@@ -380,7 +380,7 @@ function AgendaSecao({
                   value={novaHora}
                   onChange={(e) => setNovaHora(e.target.value)}
                 >
-                  {horariosDoBarbeiro(a.barbeiro).map((h) => (
+                  {horariosDoBarbeiro(a.barbeiro, novaData || a.data).map((h) => (
                     <option key={h} value={h}>
                       {h}
                     </option>
@@ -495,7 +495,7 @@ function ModalBloqueio({
   const [horas, setHoras] = useState<string[]>([]);
   const [motivo, setMotivo] = useState("");
 
-  const grade = horariosDoBarbeiro(barbeiro);
+  const grade = horariosDoBarbeiro(barbeiro, data);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">

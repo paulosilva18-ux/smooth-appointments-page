@@ -7,7 +7,7 @@ import {
   criarAgendamento,
   listarHorariosOcupados,
 } from "@/lib/agendamentos.functions";
-import { avisarWhatsApp, linkWhatsApp } from "@/lib/notificacoes";
+import { linkWhatsApp } from "@/lib/notificacoes";
 import { duracaoServico, horariosBloqueados, type Reserva } from "@/lib/duracao";
 
 
@@ -30,6 +30,7 @@ export function BookingForm({
   const barbeiros = catalogo.barbeiros.length ? catalogo.barbeiros : BARBEIROS;
 
   const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [servico, setServico] = useState<string>(SERVICOS[0]!.nome);
   const [barbeiro, setBarbeiro] = useState<string>(BARBEIROS[0]!.nome);
 
@@ -70,7 +71,7 @@ export function BookingForm({
     };
   }, [barbeiro, data, buscarOcupados]);
 
-  const horarios = horariosDoBarbeiro(profissional.nome);
+  const horarios = horariosDoBarbeiro(profissional.nome, data || undefined);
   const duracao = duracaoServico(selecionado?.nome ?? servico);
   const ocupados = horariosBloqueados(horarios, reservas, duracao);
   const livres = horarios.filter((h) => !ocupados.includes(h));
@@ -92,7 +93,7 @@ export function BookingForm({
         ? `${selecionado.nome} (${selecionado.tempo} · ${selecionado.preco})`
         : servico;
       const res = await agendar({
-        data: { nome, servico: detalhe, barbeiro: profissional.nome, data, hora },
+        data: { nome, telefone, servico: detalhe, barbeiro: profissional.nome, data, hora },
       });
       if (!res.ok) {
         setMensagem("Esse horário conflita com outra reserva. Escolha outro.");
@@ -107,26 +108,21 @@ export function BookingForm({
       setReservas((prev) => [...prev, { hora, servico: detalhe }]);
       salvarId(res.id);
       onReservado?.();
-      const aberto = avisarWhatsApp("reserva", {
-        nome,
-        servico: detalhe,
-        barbeiro: profissional.nome,
-        data,
-        hora,
-      });
       setAviso(
-        aberto
-          ? null
-          : linkWhatsApp("reserva", {
-              nome,
-              servico: detalhe,
-              barbeiro: profissional.nome,
-              data,
-              hora,
-            }),
+        linkWhatsApp("reserva", {
+          nome,
+          servico: detalhe,
+          barbeiro: profissional.nome,
+          data,
+          hora,
+        }),
       );
       setHora("");
-      setMensagem("Horário reservado e bloqueado. Confirmamos no WhatsApp.");
+      setMensagem(
+        res.confirmacaoEnviada
+          ? "Agendamento confirmado! Enviamos a confirmação no seu WhatsApp e vamos lembrar você 1h30 antes."
+          : "Agendamento confirmado e horário bloqueado. Não precisa aguardar retorno do barbeiro.",
+      );
 
 
 
@@ -151,6 +147,25 @@ export function BookingForm({
           placeholder="Como podemos te chamar?"
           className={fieldClass}
         />
+      </div>
+
+      <div>
+        <label className={labelClass} htmlFor="telefone">
+          Seu WhatsApp
+        </label>
+        <input
+          id="telefone"
+          required
+          type="tel"
+          inputMode="tel"
+          value={telefone}
+          onChange={(e) => setTelefone(e.target.value)}
+          placeholder="(81) 9 9999-9999"
+          className={fieldClass}
+        />
+        <p className="mt-2 text-xs text-muted-foreground">
+          Enviamos a confirmação na hora e um lembrete 1h30 antes do atendimento.
+        </p>
       </div>
 
       <div>
@@ -266,7 +281,7 @@ export function BookingForm({
           rel="noopener"
           className="block rounded-sm border border-primary px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
         >
-          Enviar confirmação no WhatsApp
+          Avisar o barbeiro no WhatsApp (opcional)
         </a>
       )}
 

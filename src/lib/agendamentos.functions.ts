@@ -10,6 +10,7 @@ const criarInput = slotsInput.extend({
   nome: z.string().min(1).max(120),
   servico: z.string().min(1).max(160),
   hora: z.string().min(1).max(10),
+  telefone: z.string().max(30).optional(),
 });
 
 const idsInput = z.object({
@@ -36,7 +37,7 @@ async function bloqueiosComoReservas(barbeiro: string, dataDia: string) {
     .eq("data", dataDia);
   const lista = rows ?? [];
   if (lista.some((r) => !r.hora)) {
-    return horariosDoBarbeiro(barbeiro).map((h) => ({ hora: h, servico: "Bloqueado (30 min)" }));
+    return horariosDoBarbeiro(barbeiro, dataDia).map((h) => ({ hora: h, servico: "Bloqueado (30 min)" }));
   }
   return lista
     .filter((r): r is { hora: string } => Boolean(r.hora))
@@ -100,6 +101,7 @@ export const criarAgendamento = createServerFn({ method: "POST" })
         barbeiro: data.barbeiro,
         data: data.data,
         hora: data.hora,
+        telefone: data.telefone ?? null,
       })
       .select("id")
       .single();
@@ -109,7 +111,31 @@ export const criarAgendamento = createServerFn({ method: "POST" })
       }
       throw new Error(error.message);
     }
-    return { ok: true as const, id: row.id };
+
+    let confirmacaoEnviada = false;
+    if (data.telefone) {
+      const { enviarWhatsApp } = await import("@/lib/whatsapp.server");
+      const { mensagemConfirmacaoCliente } = await import("@/lib/notificacoes");
+      const res = await enviarWhatsApp(
+        data.telefone,
+        mensagemConfirmacaoCliente({
+          nome: data.nome,
+          servico: data.servico,
+          barbeiro: data.barbeiro,
+          data: data.data,
+          hora: data.hora,
+        }),
+      ).catch(() => ({ enviado: false }));
+      confirmacaoEnviada = res.enviado;
+      if (res.enviado) {
+        await supabaseAdmin
+          .from("agendamentos")
+          .update({ confirmacao_enviada_em: new Date().toISOString() })
+          .eq("id", row.id);
+      }
+    }
+
+    return { ok: true as const, id: row.id, confirmacaoEnviada };
   });
 
 export const listarMeusAgendamentos = createServerFn({ method: "POST" })
