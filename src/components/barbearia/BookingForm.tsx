@@ -30,6 +30,7 @@ export function BookingForm({
   const barbeiros = catalogo.barbeiros.length ? catalogo.barbeiros : BARBEIROS;
 
   const [nome, setNome] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [servico, setServico] = useState<string>(SERVICOS[0]!.nome);
   const [barbeiro, setBarbeiro] = useState<string>(BARBEIROS[0]!.nome);
 

@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as PainelIndexRouteImport } from './routes/painel.index'
 import { Route as PainelBarbeiroRouteImport } from './routes/painel.$barbeiro'
+import { Route as ApiPublicHooksLembretesRouteImport } from './routes/api/public/hooks/lembretes'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const PainelBarbeiroRoute = PainelBarbeiroRouteImport.update({
   path: '/painel/$barbeiro',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksLembretesRoute = ApiPublicHooksLembretesRouteImport.update({
+  id: '/api/public/hooks/lembretes',
+  path: '/api/public/hooks/lembretes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/painel/$barbeiro': typeof PainelBarbeiroRoute
   '/painel/': typeof PainelIndexRoute
+  '/api/public/hooks/lembretes': typeof ApiPublicHooksLembretesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/painel/$barbeiro': typeof PainelBarbeiroRoute
   '/painel': typeof PainelIndexRoute
+  '/api/public/hooks/lembretes': typeof ApiPublicHooksLembretesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,30 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/painel/$barbeiro': typeof PainelBarbeiroRoute
   '/painel/': typeof PainelIndexRoute
+  '/api/public/hooks/lembretes': typeof ApiPublicHooksLembretesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/painel/$barbeiro' | '/painel/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/painel/$barbeiro'
+    | '/painel/'
+    | '/api/public/hooks/lembretes'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/painel/$barbeiro' | '/painel'
-  id: '__root__' | '/' | '/admin' | '/painel/$barbeiro' | '/painel/'
+  to:
+    | '/'
+    | '/admin'
+    | '/painel/$barbeiro'
+    | '/painel'
+    | '/api/public/hooks/lembretes'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/painel/$barbeiro'
+    | '/painel/'
+    | '/api/public/hooks/lembretes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +92,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   PainelBarbeiroRoute: typeof PainelBarbeiroRoute
   PainelIndexRoute: typeof PainelIndexRoute
+  ApiPublicHooksLembretesRoute: typeof ApiPublicHooksLembretesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +125,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelBarbeiroRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/lembretes': {
+      id: '/api/public/hooks/lembretes'
+      path: '/api/public/hooks/lembretes'
+      fullPath: '/api/public/hooks/lembretes'
+      preLoaderRoute: typeof ApiPublicHooksLembretesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +140,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   PainelBarbeiroRoute: PainelBarbeiroRoute,
   PainelIndexRoute: PainelIndexRoute,
+  ApiPublicHooksLembretesRoute: ApiPublicHooksLembretesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
