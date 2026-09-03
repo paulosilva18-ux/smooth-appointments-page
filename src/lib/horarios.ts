@@ -1,68 +1,57 @@
-export const HORARIOS = [
-  "09:00",
-  "09:30",
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "12:00",
-  "14:00",
-  "14:30",
-  "15:00",
-  "15:30",
-  "16:00",
-  "16:30",
-  "17:00",
-  "17:30",
-  "18:00",
-  "18:30",
-  "19:00",
-];
+/** Gera slots de 30 em 30 min, incluindo o horário final. */
+function faixa(inicio: string, fim: string): string[] {
+  const [hi, mi] = inicio.split(":").map(Number) as [number, number];
+  const [hf, mf] = fim.split(":").map(Number) as [number, number];
+  const out: string[] = [];
+  for (let m = hi * 60 + mi; m <= hf * 60 + mf; m += 30) {
+    out.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
+  }
+  return out;
+}
 
-/** Horários disponíveis por barbeiro. */
-export const HORARIOS_POR_BARBEIRO: Record<string, string[]> = {
-  "Fabrício": [
-    "09:00",
-    "09:30",
-    "10:00",
-    "10:30",
-    "11:00",
-    "11:30",
-    "12:00",
-    "14:00",
-    "14:30",
-    "15:00",
-    "15:30",
-    "16:00",
-    "16:30",
-    "17:00",
-    "17:30",
-    "18:00",
-    "18:30",
-    "19:00",
-  ],
-  "Victor Paz": [
-    "10:00",
-    "10:30",
-    "11:00",
-    "11:30",
-    "12:00",
-    "12:30",
-    "13:00",
-    "15:00",
-    "15:30",
-    "16:00",
-    "16:30",
-    "17:00",
-    "17:30",
-    "18:00",
-    "18:30",
-    "19:00",
-  ],
+export const HORARIOS = [...faixa("09:00", "12:00"), ...faixa("14:00", "19:00")];
+
+/** Faixas por dia da semana (0 = domingo). */
+const AGENDA_SEMANA: Record<string, Record<number, [string, string][]>> = {
+  "Fabrício": {
+    1: [["09:00", "12:00"], ["14:00", "19:00"]],
+    2: [["09:00", "12:00"], ["14:00", "19:00"]],
+    3: [["09:00", "12:00"], ["14:00", "19:00"]],
+    4: [["09:00", "12:00"], ["14:00", "19:00"]],
+    5: [["09:00", "12:00"], ["14:00", "19:00"]],
+    6: [["09:00", "12:00"], ["14:00", "19:00"]],
+  },
+  "Victor Paz": {
+    1: [["10:00", "13:00"], ["15:00", "19:00"]],
+    2: [["09:00", "13:00"], ["15:00", "19:00"]],
+    3: [["10:00", "13:00"], ["15:00", "19:00"]],
+    4: [["10:00", "13:00"], ["15:00", "19:00"]],
+    5: [["09:00", "13:00"], ["15:00", "19:00"]],
+    6: [["09:00", "13:00"], ["15:00", "19:00"]],
+  },
 };
 
-export function horariosDoBarbeiro(nome: string): string[] {
-  return HORARIOS_POR_BARBEIRO[nome] ?? HORARIOS;
+/** Grade completa do barbeiro (união de todos os dias) — usada como fallback. */
+export const HORARIOS_POR_BARBEIRO: Record<string, string[]> = Object.fromEntries(
+  Object.entries(AGENDA_SEMANA).map(([nome, dias]) => [
+    nome,
+    [...new Set(Object.values(dias).flatMap((fs) => fs.flatMap(([a, b]) => faixa(a, b))))].sort(),
+  ]),
+);
+
+function diaSemana(data?: string): number | null {
+  if (!data) return null;
+  const t = Date.parse(`${data}T12:00:00-03:00`);
+  if (Number.isNaN(t)) return null;
+  return new Date(t).getUTCDay();
+}
+
+export function horariosDoBarbeiro(nome: string, data?: string): string[] {
+  const semana = AGENDA_SEMANA[nome];
+  if (!semana) return HORARIOS;
+  const dow = diaSemana(data);
+  if (dow === null) return HORARIOS_POR_BARBEIRO[nome] ?? HORARIOS;
+  return (semana[dow] ?? []).flatMap(([a, b]) => faixa(a, b));
 }
 
 const STORAGE_KEY = "fb-agendamentos";
