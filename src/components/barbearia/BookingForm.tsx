@@ -108,26 +108,21 @@ export function BookingForm({
       setReservas((prev) => [...prev, { hora, servico: detalhe }]);
       salvarId(res.id);
       onReservado?.();
-      const aberto = avisarWhatsApp("reserva", {
-        nome,
-        servico: detalhe,
-        barbeiro: profissional.nome,
-        data,
-        hora,
-      });
       setAviso(
-        aberto
-          ? null
-          : linkWhatsApp("reserva", {
-              nome,
-              servico: detalhe,
-              barbeiro: profissional.nome,
-              data,
-              hora,
-            }),
+        linkWhatsApp("reserva", {
+          nome,
+          servico: detalhe,
+          barbeiro: profissional.nome,
+          data,
+          hora,
+        }),
       );
       setHora("");
-      setMensagem("Horário reservado e bloqueado. Confirmamos no WhatsApp.");
+      setMensagem(
+        res.confirmacaoEnviada
+          ? "Agendamento confirmado! Enviamos a confirmação no seu WhatsApp e vamos lembrar você 1h30 antes."
+          : "Agendamento confirmado e horário bloqueado. Não precisa aguardar retorno do barbeiro.",
+      );
 
 
 
