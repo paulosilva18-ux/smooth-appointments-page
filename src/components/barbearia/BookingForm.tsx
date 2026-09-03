@@ -281,7 +281,7 @@ export function BookingForm({
           rel="noopener"
           className="block rounded-sm border border-primary px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
         >
-          Enviar confirmação no WhatsApp
+          Avisar o barbeiro no WhatsApp (opcional)
         </a>
       )}
 
