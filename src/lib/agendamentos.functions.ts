@@ -101,6 +101,7 @@ export const criarAgendamento = createServerFn({ method: "POST" })
         barbeiro: data.barbeiro,
         data: data.data,
         hora: data.hora,
+        telefone: data.telefone ?? null,
       })
       .select("id")
       .single();
@@ -110,7 +111,31 @@ export const criarAgendamento = createServerFn({ method: "POST" })
       }
       throw new Error(error.message);
     }
-    return { ok: true as const, id: row.id };
+
+    let confirmacaoEnviada = false;
+    if (data.telefone) {
+      const { enviarWhatsApp } = await import("@/lib/whatsapp.server");
+      const { mensagemConfirmacaoCliente } = await import("@/lib/notificacoes");
+      const res = await enviarWhatsApp(
+        data.telefone,
+        mensagemConfirmacaoCliente({
+          nome: data.nome,
+          servico: data.servico,
+          barbeiro: data.barbeiro,
+          data: data.data,
+          hora: data.hora,
+        }),
+      ).catch(() => ({ enviado: false }));
+      confirmacaoEnviada = res.enviado;
+      if (res.enviado) {
+        await supabaseAdmin
+          .from("agendamentos")
+          .update({ confirmacao_enviada_em: new Date().toISOString() })
+          .eq("id", row.id);
+      }
+    }
+
+    return { ok: true as const, id: row.id, confirmacaoEnviada };
   });
 
 export const listarMeusAgendamentos = createServerFn({ method: "POST" })
