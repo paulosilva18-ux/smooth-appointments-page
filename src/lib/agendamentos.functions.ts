@@ -10,6 +10,7 @@ const criarInput = slotsInput.extend({
   nome: z.string().min(1).max(120),
   servico: z.string().min(1).max(160),
   hora: z.string().min(1).max(10),
+  telefone: z.string().max(30).optional(),
 });
 
 const idsInput = z.object({
