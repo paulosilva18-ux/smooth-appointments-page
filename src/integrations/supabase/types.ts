@@ -17,30 +17,39 @@ export type Database = {
       agendamentos: {
         Row: {
           barbeiro: string
+          confirmacao_enviada_em: string | null
           created_at: string
           data: string
           hora: string
           id: string
+          lembrete_enviado_em: string | null
           nome: string
           servico: string
+          telefone: string | null
         }
         Insert: {
           barbeiro: string
+          confirmacao_enviada_em?: string | null
           created_at?: string
           data: string
           hora: string
           id?: string
+          lembrete_enviado_em?: string | null
           nome: string
           servico: string
+          telefone?: string | null
         }
         Update: {
           barbeiro?: string
+          confirmacao_enviada_em?: string | null
           created_at?: string
           data?: string
           hora?: string
           id?: string
+          lembrete_enviado_em?: string | null
           nome?: string
           servico?: string
+          telefone?: string | null
         }
         Relationships: []
       }
