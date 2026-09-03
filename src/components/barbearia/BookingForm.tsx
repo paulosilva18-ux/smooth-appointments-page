@@ -7,7 +7,7 @@ import {
   criarAgendamento,
   listarHorariosOcupados,
 } from "@/lib/agendamentos.functions";
-import { avisarWhatsApp, linkWhatsApp } from "@/lib/notificacoes";
+import { linkWhatsApp } from "@/lib/notificacoes";
 import { duracaoServico, horariosBloqueados, type Reserva } from "@/lib/duracao";
 
 
