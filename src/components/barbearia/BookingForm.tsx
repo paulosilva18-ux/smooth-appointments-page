@@ -71,7 +71,7 @@ export function BookingForm({
     };
   }, [barbeiro, data, buscarOcupados]);
 
-  const horarios = horariosDoBarbeiro(profissional.nome);
+  const horarios = horariosDoBarbeiro(profissional.nome, data || undefined);
   const duracao = duracaoServico(selecionado?.nome ?? servico);
   const ocupados = horariosBloqueados(horarios, reservas, duracao);
   const livres = horarios.filter((h) => !ocupados.includes(h));
