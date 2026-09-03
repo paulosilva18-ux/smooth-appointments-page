@@ -37,7 +37,7 @@ async function bloqueiosComoReservas(barbeiro: string, dataDia: string) {
     .eq("data", dataDia);
   const lista = rows ?? [];
   if (lista.some((r) => !r.hora)) {
-    return horariosDoBarbeiro(barbeiro).map((h) => ({ hora: h, servico: "Bloqueado (30 min)" }));
+    return horariosDoBarbeiro(barbeiro, dataDia).map((h) => ({ hora: h, servico: "Bloqueado (30 min)" }));
   }
   return lista
     .filter((r): r is { hora: string } => Boolean(r.hora))
