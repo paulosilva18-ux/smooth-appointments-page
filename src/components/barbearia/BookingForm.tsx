@@ -93,7 +93,7 @@ export function BookingForm({
         ? `${selecionado.nome} (${selecionado.tempo} · ${selecionado.preco})`
         : servico;
       const res = await agendar({
-        data: { nome, servico: detalhe, barbeiro: profissional.nome, data, hora },
+        data: { nome, telefone, servico: detalhe, barbeiro: profissional.nome, data, hora },
       });
       if (!res.ok) {
         setMensagem("Esse horário conflita com outra reserva. Escolha outro.");
