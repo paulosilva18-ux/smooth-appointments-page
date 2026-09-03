@@ -150,6 +150,25 @@ export function BookingForm({
       </div>
 
       <div>
+        <label className={labelClass} htmlFor="telefone">
+          Seu WhatsApp
+        </label>
+        <input
+          id="telefone"
+          required
+          type="tel"
+          inputMode="tel"
+          value={telefone}
+          onChange={(e) => setTelefone(e.target.value)}
+          placeholder="(81) 9 9999-9999"
+          className={fieldClass}
+        />
+        <p className="mt-2 text-xs text-muted-foreground">
+          Enviamos a confirmação na hora e um lembrete 1h30 antes do atendimento.
+        </p>
+      </div>
+
+      <div>
         <label className={labelClass} htmlFor="servico">
           Serviço
         </label>
