@@ -417,7 +417,8 @@ function AgendaSecao({
               </div>
             )}
           </article>
-        ))}
+          );
+        })}
       </div>
 
       <div className="rounded-xl border border-white/10 bg-[#1b1b1b] p-4">
