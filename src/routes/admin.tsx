@@ -329,12 +329,18 @@ function AgendaSecao({
             Nenhum agendamento em {formatarData(dia)}.
           </p>
         )}
-        {doDia.map((a) => (
-          <article key={a.id} className="rounded-xl border border-white/10 bg-[#1b1b1b] p-4">
+        {doDia.map((a) => {
+          const st = statusDoDia(a.data, hojeIso);
+          const rot = rotuloStatus(st);
+          return (
+          <article key={a.id} className={`rounded-xl border p-4 ${classesStatus(st)}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="font-semibold text-white">
+                <p className="flex flex-wrap items-center gap-2 font-semibold text-white">
                   {a.hora} · {a.nome}
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${rot.classe}`}>
+                    {rot.texto}
+                  </span>
                 </p>
                 <p className="text-sm text-stone-400">
                   {a.servico} {perfilAdmin && <span className="text-amber-500">· {a.barbeiro}</span>}
