@@ -19,6 +19,7 @@ import {
 } from "@/lib/admin.functions";
 import { horariosDoBarbeiro } from "@/lib/horarios";
 import { formatarData, moeda, precoDoServico } from "@/lib/painel";
+import { classesStatus, rotuloStatus, statusDoDia, useHojeIso } from "@/lib/statusDia";
 import {
   AlertCircle,
   Ban,
@@ -270,6 +271,7 @@ function AgendaSecao({
   const [novaData, setNovaData] = useState("");
   const [novaHora, setNovaHora] = useState("");
   const [modalBloqueio, setModalBloqueio] = useState(false);
+  const hojeIso = useHojeIso();
 
   const doDia = useMemo(
     () => agendamentos.filter((a) => a.data === dia).sort((a, b) => a.hora.localeCompare(b.hora)),
