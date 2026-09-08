@@ -13,6 +13,7 @@ import {
 import { nomePorSlug, precoDoServico, moeda, formatarData } from "@/lib/painel";
 import { SERVICOS, BARBEIROS } from "@/lib/barbearia";
 import { horariosDoBarbeiro } from "@/lib/horarios";
+import { classesStatus, rotuloStatus, statusDoDia, useHojeIso } from "@/lib/statusDia";
 import {
   Scissors,
   Calendar,
@@ -124,6 +125,7 @@ function PainelBarbeiro() {
     setMsg("Agendamento remarcado.");
   };
 
+  const hojeCor = useHojeIso();
   const agora = new Date();
   const hojeIso = agora.toISOString().split("T")[0] ?? "";
 
@@ -262,11 +264,18 @@ function PainelBarbeiro() {
                   {futuros.map((a) => (
                     <div
                       key={a.id}
-                      className="rounded-xl border border-white/10 bg-[#1b1b1b] p-4"
+                      className={`rounded-xl border p-4 ${classesStatus(statusDoDia(a.data, hojeCor))}`}
                     >
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                          <p className="font-semibold text-white">{a.nome}</p>
+                          <p className="flex flex-wrap items-center gap-2 font-semibold text-white">
+                            {a.nome}
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${rotuloStatus(statusDoDia(a.data, hojeCor)).classe}`}
+                            >
+                              {rotuloStatus(statusDoDia(a.data, hojeCor)).texto}
+                            </span>
+                          </p>
                           <p className="text-sm text-stone-400">
                             {a.servico} · {formatarData(a.data)} às {a.hora}
                           </p>
@@ -342,9 +351,16 @@ function PainelBarbeiro() {
                   {passados.map((a) => (
                     <div
                       key={a.id}
-                      className="rounded-xl border border-white/10 bg-[#1b1b1b] p-4"
+                      className={`rounded-xl border p-4 ${classesStatus(statusDoDia(a.data, hojeCor))}`}
                     >
-                      <p className="font-semibold text-white">{a.nome}</p>
+                      <p className="flex flex-wrap items-center gap-2 font-semibold text-white">
+                        {a.nome}
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${rotuloStatus(statusDoDia(a.data, hojeCor)).classe}`}
+                        >
+                          {rotuloStatus(statusDoDia(a.data, hojeCor)).texto}
+                        </span>
+                      </p>
                       <p className="text-sm text-stone-400">
                         {a.servico} · {formatarData(a.data)} às {a.hora}
                       </p>
