@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { CheckCircle2 } from "lucide-react";
 import { SERVICOS, BARBEIROS } from "@/lib/barbearia";
 import { useCatalogo } from "@/lib/useCatalogo";
 import { horariosDoBarbeiro, salvarId, POLITICA_CANCELAMENTO } from "@/lib/horarios";
@@ -7,7 +8,7 @@ import {
   criarAgendamento,
   listarHorariosOcupados,
 } from "@/lib/agendamentos.functions";
-import { linkWhatsApp } from "@/lib/notificacoes";
+import { formatarData, linkWhatsApp } from "@/lib/notificacoes";
 import { duracaoServico, horariosBloqueados, type Reserva } from "@/lib/duracao";
 
 
@@ -16,6 +17,14 @@ const fieldClass =
   "w-full rounded-sm border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary";
 
 const labelClass = "mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground";
+
+type ReservaConfirmada = {
+  servico: string;
+  barbeiro: string;
+  data: string;
+  hora: string;
+  confirmacaoEnviada: boolean;
+};
 
 export function BookingForm({
   compact = false,
@@ -41,6 +50,7 @@ export function BookingForm({
   const [enviando, setEnviando] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [reservaConfirmada, setReservaConfirmada] = useState<ReservaConfirmada | null>(null);
 
 
   const buscarOcupados = useServerFn(listarHorariosOcupados);
@@ -88,6 +98,8 @@ export function BookingForm({
     }
     setEnviando(true);
     setMensagem(null);
+    setReservaConfirmada(null);
+    setAviso(null);
     try {
       const detalhe = selecionado
         ? `${selecionado.nome} (${selecionado.tempo} · ${selecionado.preco})`
@@ -117,15 +129,14 @@ export function BookingForm({
           hora,
         }),
       );
+      setReservaConfirmada({
+        servico: selecionado?.nome ?? servico,
+        barbeiro: profissional.nome,
+        data,
+        hora,
+        confirmacaoEnviada: res.confirmacaoEnviada,
+      });
       setHora("");
-      setMensagem(
-        res.confirmacaoEnviada
-          ? "Agendamento confirmado! Enviamos a confirmação no seu WhatsApp e vamos lembrar você 1h30 antes."
-          : "Agendamento confirmado e horário bloqueado. Não precisa aguardar retorno do barbeiro.",
-      );
-
-
-
     } catch {
       setMensagem("Não foi possível reservar agora. Tente novamente.");
     } finally {
@@ -274,6 +285,50 @@ export function BookingForm({
         {enviando ? "Reservando…" : "Confirmar agendamento"}
       </button>
 
+      {reservaConfirmada && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="border border-primary bg-primary/10 p-5 text-left"
+        >
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
+            <div>
+              <p className="text-base font-bold text-foreground">Agendamento concluído!</p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                Seu horário já está confirmado e bloqueado na agenda. Não precisa aguardar a
+                confirmação do barbeiro.
+              </p>
+            </div>
+          </div>
+          <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-border pt-4 text-sm">
+            <div>
+              <dt className="text-xs uppercase text-muted-foreground">Serviço</dt>
+              <dd className="mt-1 font-semibold text-foreground">{reservaConfirmada.servico}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase text-muted-foreground">Barbeiro</dt>
+              <dd className="mt-1 font-semibold text-foreground">{reservaConfirmada.barbeiro}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase text-muted-foreground">Data</dt>
+              <dd className="mt-1 font-semibold text-foreground">
+                {formatarData(reservaConfirmada.data)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase text-muted-foreground">Horário</dt>
+              <dd className="mt-1 font-semibold text-foreground">{reservaConfirmada.hora}</dd>
+            </div>
+          </dl>
+          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+            {reservaConfirmada.confirmacaoEnviada
+              ? "A confirmação foi enviada ao seu WhatsApp. Você receberá um lembrete 1h30 antes."
+              : "Anote o horário acima. Seu agendamento já está garantido."}
+          </p>
+        </div>
+      )}
+
       {aviso && (
         <a
           href={aviso}
@@ -285,11 +340,15 @@ export function BookingForm({
         </a>
       )}
 
-      <p className="text-center text-xs text-muted-foreground">
-
-        {mensagem ??
-          `Reservado, o horário e os ${duracao} min do serviço ficam bloqueados na agenda.`}
-      </p>
+      {!reservaConfirmada && (
+        <p
+          className={`text-center text-xs ${mensagem ? "font-semibold text-destructive" : "text-muted-foreground"}`}
+          role={mensagem ? "alert" : undefined}
+        >
+          {mensagem ??
+            `Reservado, o horário e os ${duracao} min do serviço ficam bloqueados na agenda.`}
+        </p>
+      )}
     </form>
   );
 }
