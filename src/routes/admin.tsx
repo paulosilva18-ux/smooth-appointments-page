@@ -21,6 +21,7 @@ import { horariosDoBarbeiro } from "@/lib/horarios";
 import { duracaoServico, horariosDisponiveis } from "@/lib/duracao";
 import { formatarData, moeda, precoDoServico } from "@/lib/painel";
 import { classesStatus, rotuloStatus, statusDoDia, useHojeIso } from "@/lib/statusDia";
+import { useAvisoAgendamento } from "@/lib/useAvisoAgendamento";
 import {
   AlertCircle,
   Ban,
@@ -30,6 +31,8 @@ import {
   Lock,
   Plus,
   RefreshCw,
+  Volume2,
+  VolumeX,
   Scissors,
   Trash2,
   Users,
@@ -102,11 +105,16 @@ function AdminPage() {
   const [filtroBarbeiro, setFiltroBarbeiro] = useState<string>("");
 
   const { data: agenda, refetch } = useQuery({
-    queryKey: ["admin-agenda", perfil?.slug, filtroBarbeiro],
-    queryFn: () => doAgenda({ data: { barbeiro: filtroBarbeiro || null } }),
+    queryKey: ["admin-agenda", perfil?.slug],
+    queryFn: () => doAgenda({ data: { barbeiro: null } }),
     enabled: Boolean(perfil),
     refetchOnWindowFocus: false,
+    refetchInterval: 10000,
   });
+  const aviso = useAvisoAgendamento(
+    perfil ? agenda?.agendamentos : undefined,
+    perfil?.slug ?? "",
+  );
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,6 +203,16 @@ function AdminPage() {
             </div>
           </div>
           <button
+            type="button"
+            className={btn}
+            onClick={aviso.ativarSom}
+            title={aviso.somAtivo ? "Desativar som de novas reservas" : "Ativar som de novas reservas"}
+            aria-label={aviso.somAtivo ? "Desativar som de novas reservas" : "Ativar som de novas reservas"}
+            aria-pressed={aviso.somAtivo}
+          >
+            {aviso.somAtivo ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </button>
+          <button
             className={btn}
             onClick={async () => {
               await doSair();
@@ -209,6 +227,12 @@ function AdminPage() {
       </header>
 
       <div className="mx-auto max-w-6xl space-y-8 p-5">
+        {aviso.novas > 0 && (
+          <div role="alert" className="flex items-center justify-between gap-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-4 text-amber-400">
+            <span>{aviso.novas} novo(s) agendamento(s) na agenda.</span>
+            <button type="button" className={btn} onClick={aviso.limparNovas}>Dispensar</button>
+          </div>
+        )}
         <AgendaSecao
           perfilAdmin={perfil.admin}
           perfilNome={perfil.nome}
@@ -216,8 +240,8 @@ function AdminPage() {
           setDia={setDia}
           filtroBarbeiro={filtroBarbeiro}
           setFiltroBarbeiro={setFiltroBarbeiro}
-          agendamentos={agendamentos}
-          bloqueios={bloqueios}
+          agendamentos={filtroBarbeiro ? agendamentos.filter((a) => a.barbeiro === filtroBarbeiro) : agendamentos}
+          bloqueios={filtroBarbeiro ? bloqueios.filter((b) => b.barbeiro === filtroBarbeiro) : bloqueios}
           barbeiros={barbeiros}
           refetch={refetch}
         />
