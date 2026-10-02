@@ -31,6 +31,10 @@ export const Route = createFileRoute("/painel/$barbeiro")({
     meta: [
       { title: `Painel ${nomePorSlug(params.barbeiro) ?? ""} — Fabrício Barbeiro` },
       { name: "description", content: "Painel administrativo da barbearia." },
+      { property: "og:title", content: `Painel ${nomePorSlug(params.barbeiro) ?? "Barbeiro"} — Fabrício Barbeiro` },
+      { property: "og:description", content: "Painel administrativo da barbearia." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

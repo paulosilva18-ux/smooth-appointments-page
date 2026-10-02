@@ -40,6 +40,10 @@ export const Route = createFileRoute("/admin")({
     meta: [
       { title: "Administração — Fabrício Barbeiro" },
       { name: "description", content: "Área restrita de gestão da barbearia." },
+      { property: "og:title", content: "Administração — Fabrício Barbeiro" },
+      { property: "og:description", content: "Área restrita de gestão da barbearia." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),

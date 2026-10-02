@@ -7,6 +7,10 @@ export const Route = createFileRoute("/painel/")({
     meta: [
       { title: "Área do barbeiro — Fabrício Barbeiro" },
       { name: "description", content: "Acesso aos painéis administrativos." },
+      { property: "og:title", content: "Área do barbeiro — Fabrício Barbeiro" },
+      { property: "og:description", content: "Acesso aos painéis administrativos." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),
