@@ -14,6 +14,7 @@ import { nomePorSlug, precoDoServico, moeda, formatarData } from "@/lib/painel";
 import { SERVICOS, BARBEIROS } from "@/lib/barbearia";
 import { duracaoServico, horariosDisponiveis } from "@/lib/duracao";
 import { classesStatus, rotuloStatus, statusDoDia, useHojeIso } from "@/lib/statusDia";
+import { useAvisoAgendamento } from "@/lib/useAvisoAgendamento";
 import {
   Scissors,
   Calendar,
@@ -24,6 +25,8 @@ import {
   RefreshCw,
   CheckCircle2,
   AlertCircle,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 
 export const Route = createFileRoute("/painel/$barbeiro")({
@@ -72,7 +75,12 @@ function PainelBarbeiro() {
     queryFn: () => doAgenda({ data: { slug: barbeiro } }),
     enabled: status?.autenticado === true,
     refetchOnWindowFocus: false,
+    refetchInterval: 10000,
   });
+  const aviso = useAvisoAgendamento(
+    status?.autenticado ? agendaData?.agendamentos : undefined,
+    `${barbeiro}:${status?.autenticado ?? false}`,
+  );
 
   if (!nome) {
     return (
@@ -211,6 +219,16 @@ function PainelBarbeiro() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              type="button"
+              onClick={aviso.ativarSom}
+              title={aviso.somAtivo ? "Desativar som de novas reservas" : "Ativar som de novas reservas"}
+              aria-label={aviso.somAtivo ? "Desativar som de novas reservas" : "Ativar som de novas reservas"}
+              aria-pressed={aviso.somAtivo}
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 text-stone-300 hover:bg-white/5"
+            >
+              {aviso.somAtivo ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </button>
+            <button
               onClick={() => refetchAgenda()}
               className="flex items-center gap-2 rounded-lg border border-white/10 px-4 py-2 text-sm text-stone-300 hover:bg-white/5"
             >
@@ -229,6 +247,12 @@ function PainelBarbeiro() {
       </header>
 
       <div className="mx-auto max-w-5xl p-6">
+        {aviso.novas > 0 && (
+          <div role="alert" className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">
+            <span>{aviso.novas} novo(s) agendamento(s) na sua agenda.</span>
+            <button type="button" onClick={aviso.limparNovas} className="text-amber-500 hover:underline">Dispensar</button>
+          </div>
+        )}
         <div className="mb-6 flex gap-2 overflow-x-auto">
           {(["agenda", "servicos", "faturamento"] as const).map((t) => (
             <button
