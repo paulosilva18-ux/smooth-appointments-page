@@ -7,4 +7,5 @@
 - [x] Mensagem de confirmação destacada após o cliente concluir o agendamento
 - [x] Horários dinâmicos conforme duração exata do serviço, sem avançar sobre pausas ou fechamento
 - [x] Painéis atualizados automaticamente a cada 3 segundos e som liberado automaticamente quando o navegador permitir
+- [x] Notificações do navegador para novas reservas com o painel aberto em segundo plano, mediante permissão
 - [ ] Cliente precisa conectar a conta do WhatsApp Cloud API (Meta) para os envios saírem de verdade

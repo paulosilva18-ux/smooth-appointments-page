@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 type AgendamentoAviso = {
   id: string;
   nome: string;
+  servico: string;
   barbeiro: string;
   data: string;
   hora: string;
@@ -18,6 +19,26 @@ export function useAvisoAgendamento(
   const audio = useRef<AudioContext | null>(null);
   const [somAtivo, setSomAtivo] = useState(false);
   const [novas, setNovas] = useState(0);
+  const [permissao, setPermissao] = useState<NotificationPermission | "indisponivel">("indisponivel");
+
+  useEffect(() => {
+    const atualizarPermissao = () => {
+      setPermissao("Notification" in window && window.isSecureContext ? Notification.permission : "indisponivel");
+    };
+    atualizarPermissao();
+    window.addEventListener("focus", atualizarPermissao);
+    return () => window.removeEventListener("focus", atualizarPermissao);
+  }, []);
+
+  const ativarNotificacoes = useCallback(async () => {
+    if (!("Notification" in window) || !window.isSecureContext) return;
+    try {
+      const resultado = await Notification.requestPermission();
+      setPermissao(resultado);
+    } catch {
+      setPermissao(Notification.permission);
+    }
+  }, []);
 
   const tocar = useCallback(() => {
     const contexto = audio.current;
@@ -47,10 +68,22 @@ export function useAvisoAgendamento(
     if (!agendamentos) return;
     const atuais = new Set(agendamentos.map((a) => a.id));
     if (conhecidos.current) {
-      const quantidade = agendamentos.filter((a) => !conhecidos.current?.has(a.id)).length;
-      if (quantidade) {
-        setNovas((n) => n + quantidade);
+      const novasReservas = agendamentos.filter((a) => !conhecidos.current?.has(a.id));
+      if (novasReservas.length) {
+        setNovas((n) => n + novasReservas.length);
         if (somAtivo) tocar();
+        if (document.visibilityState === "hidden" && "Notification" in window && Notification.permission === "granted") {
+          for (const reserva of novasReservas) {
+            const notificacao = new Notification(`Nova reserva · ${reserva.barbeiro}`, {
+              body: `${reserva.nome} · ${reserva.servico} · ${reserva.data.split("-").reverse().join("/")} às ${reserva.hora}`,
+              tag: `reserva-${reserva.id}`,
+            });
+            notificacao.onclick = () => {
+              window.focus();
+              notificacao.close();
+            };
+          }
+        }
       }
     }
     conhecidos.current = atuais;
@@ -84,5 +117,5 @@ export function useAvisoAgendamento(
     };
   }, []);
 
-  return { somAtivo, novas, limparNovas: () => setNovas(0) };
+  return { somAtivo, novas, limparNovas: () => setNovas(0), permissao, ativarNotificacoes };
 }
