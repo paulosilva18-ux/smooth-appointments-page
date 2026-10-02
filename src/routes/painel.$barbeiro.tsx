@@ -12,7 +12,6 @@ import {
 } from "@/lib/painel.functions";
 import { nomePorSlug, precoDoServico, moeda, formatarData } from "@/lib/painel";
 import { SERVICOS, BARBEIROS } from "@/lib/barbearia";
-import { horariosDoBarbeiro } from "@/lib/horarios";
 import { duracaoServico, horariosDisponiveis } from "@/lib/duracao";
 import { classesStatus, rotuloStatus, statusDoDia, useHojeIso } from "@/lib/statusDia";
 import {

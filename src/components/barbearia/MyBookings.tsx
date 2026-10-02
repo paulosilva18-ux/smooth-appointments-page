@@ -141,7 +141,7 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
   };
 
   const handleReagendar = async () => {
-    if (!item || !novaData || !novaHora) return;
+    if (!item || !novaData || !novaHora || !livresEdicao.includes(novaHora)) return;
     if (!dentroDaJanela(novaData, novaHora)) {
       setMensagem(`Escolha um horário com pelo menos ${JANELA_CANCELAMENTO_HORAS} h de antecedência.`);
       return;
@@ -241,7 +241,7 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      disabled={ocupado || !novaHora || !novaData}
+                      disabled={ocupado || !novaHora || !novaData || !livresEdicao.includes(novaHora)}
                       onClick={handleReagendar}
                       className="flex-1 rounded-sm bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-primary-foreground disabled:opacity-50"
                     >

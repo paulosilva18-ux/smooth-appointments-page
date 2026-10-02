@@ -90,7 +90,7 @@ export function BookingForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!hora) {
+    if (!hora || carregando || !livres.includes(hora)) {
       setMensagem("Escolha um horário disponível.");
       return;
     }
@@ -275,7 +275,7 @@ export function BookingForm({
 
       <button
         type="submit"
-        disabled={enviando || !hora}
+        disabled={enviando || carregando || !hora || !livres.includes(hora)}
         className="w-full rounded-sm bg-primary px-6 py-4 text-sm font-bold uppercase tracking-[0.25em] text-primary-foreground transition-transform hover:scale-[1.01] active:scale-100 disabled:cursor-not-allowed disabled:opacity-50"
         style={{ boxShadow: "var(--shadow-brass)" }}
       >
