@@ -10,4 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Use `src/lib/duracao.ts` as the shared source of truth for minute-accurate booking availability and turn fitting; booking and rescheduling must apply the same rules.
-- Use a shared browser-side booking-alert hook in both administrative views; polling preserves server-side access scoping and audio requires an explicit user gesture.
+- Use a shared browser-side booking-alert hook in both administrative views; frequent polling preserves server-side access scoping, while audio automatically unlocks on the first permitted browser gesture.

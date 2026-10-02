@@ -74,8 +74,9 @@ function PainelBarbeiro() {
     queryKey: ["painel-agenda", barbeiro],
     queryFn: () => doAgenda({ data: { slug: barbeiro } }),
     enabled: status?.autenticado === true,
-    refetchOnWindowFocus: false,
-    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 3000,
+    refetchIntervalInBackground: true,
   });
   const aviso = useAvisoAgendamento(
     status?.autenticado ? agendaData?.agendamentos : undefined,
@@ -218,16 +219,13 @@ function PainelBarbeiro() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={aviso.ativarSom}
-              title={aviso.somAtivo ? "Desativar som de novas reservas" : "Ativar som de novas reservas"}
-              aria-label={aviso.somAtivo ? "Desativar som de novas reservas" : "Ativar som de novas reservas"}
-              aria-pressed={aviso.somAtivo}
-              className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 text-stone-300 hover:bg-white/5"
+            <span
+              title={aviso.somAtivo ? "Avisos sonoros ativos" : "O navegador libera o som após a primeira interação com a página"}
+              aria-label={aviso.somAtivo ? "Avisos sonoros ativos" : "Som aguardando liberação do navegador"}
+              className="flex h-10 w-10 items-center justify-center text-stone-300"
             >
               {aviso.somAtivo ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-            </button>
+            </span>
             <button
               onClick={() => refetchAgenda()}
               className="flex items-center gap-2 rounded-lg border border-white/10 px-4 py-2 text-sm text-stone-300 hover:bg-white/5"

@@ -108,8 +108,9 @@ function AdminPage() {
     queryKey: ["admin-agenda", perfil?.slug],
     queryFn: () => doAgenda({ data: { barbeiro: null } }),
     enabled: Boolean(perfil),
-    refetchOnWindowFocus: false,
-    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 3000,
+    refetchIntervalInBackground: true,
   });
   const aviso = useAvisoAgendamento(
     perfil ? agenda?.agendamentos : undefined,
@@ -202,16 +203,13 @@ function AdminPage() {
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            className={btn}
-            onClick={aviso.ativarSom}
-            title={aviso.somAtivo ? "Desativar som de novas reservas" : "Ativar som de novas reservas"}
-            aria-label={aviso.somAtivo ? "Desativar som de novas reservas" : "Ativar som de novas reservas"}
-            aria-pressed={aviso.somAtivo}
+          <span
+            className="text-stone-300"
+            title={aviso.somAtivo ? "Avisos sonoros ativos" : "O navegador libera o som após a primeira interação com a página"}
+            aria-label={aviso.somAtivo ? "Avisos sonoros ativos" : "Som aguardando liberação do navegador"}
           >
             {aviso.somAtivo ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-          </button>
+          </span>
           <button
             className={btn}
             onClick={async () => {

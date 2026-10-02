@@ -6,4 +6,5 @@
 - [x] Horários do Victor Paz: ter/sex/sáb 09–13 e 15–19; seg/qua/qui 10–13 e 15–19
 - [x] Mensagem de confirmação destacada após o cliente concluir o agendamento
 - [x] Horários dinâmicos conforme duração exata do serviço, sem avançar sobre pausas ou fechamento
+- [x] Painéis atualizados automaticamente a cada 3 segundos e som liberado automaticamente quando o navegador permitir
 - [ ] Cliente precisa conectar a conta do WhatsApp Cloud API (Meta) para os envios saírem de verdade
