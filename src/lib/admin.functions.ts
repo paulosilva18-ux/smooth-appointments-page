@@ -135,6 +135,13 @@ export const remarcarAdmin = createServerFn({ method: "POST" })
     const { exigirEscopo } = await import("@/lib/painel.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { perfil } = await exigirEscopo(null);
+    const { data: atual } = await supabaseAdmin.from("agendamentos")
+      .select("id, barbeiro, servico").eq("id", data.id).maybeSingle();
+    if (!atual || (!perfil.admin && atual.barbeiro !== perfil.nome))
+      return { ok: false as const, motivo: "inexistente" as const };
+    const { horarioCabeNoTurno, duracaoServico } = await import("@/lib/duracao");
+    if (!horarioCabeNoTurno(atual.barbeiro, data.data, data.hora, duracaoServico(atual.servico)))
+      return { ok: false as const, motivo: "ocupado" as const };
     let q = supabaseAdmin
       .from("agendamentos")
       .update({ data: data.data, hora: data.hora })
