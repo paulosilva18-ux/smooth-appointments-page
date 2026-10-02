@@ -29,7 +29,8 @@ const reagendarInput = idInput.extend({
 /** Bloqueios manuais do barbeiro convertidos em "reservas" de 30 min. */
 async function bloqueiosComoReservas(barbeiro: string, dataDia: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { horariosDoBarbeiro } = await import("@/lib/horarios");
+  const { turnosDoBarbeiro } = await import("@/lib/horarios");
+  const { horaParaMinutos } = await import("@/lib/duracao");
   const { data: rows } = await supabaseAdmin
     .from("bloqueios")
     .select("hora")
@@ -37,7 +38,9 @@ async function bloqueiosComoReservas(barbeiro: string, dataDia: string) {
     .eq("data", dataDia);
   const lista = rows ?? [];
   if (lista.some((r) => !r.hora)) {
-    return horariosDoBarbeiro(barbeiro, dataDia).map((h) => ({ hora: h, servico: "Bloqueado (30 min)" }));
+    return turnosDoBarbeiro(barbeiro, dataDia).map(([a, b]) => ({
+      hora: a, servico: `Bloqueado (${Math.max(1, horaParaMinutos(b) - horaParaMinutos(a))} min)`,
+    }));
   }
   return lista
     .filter((r): r is { hora: string } => Boolean(r.hora))
@@ -67,7 +70,8 @@ async function existeConflito(
   ignorarId?: string,
 ) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { horaParaMinutos, duracaoServico } = await import("@/lib/duracao");
+  const { horaParaMinutos, duracaoServico, horarioCabeNoTurno } = await import("@/lib/duracao");
+  if (!horarioCabeNoTurno(barbeiro, dataDia, hora, duracaoServico(servico))) return true;
   let q = supabaseAdmin
     .from("agendamentos")
     .select("id, hora, servico")

@@ -41,9 +41,17 @@ export const HORARIOS_POR_BARBEIRO: Record<string, string[]> = Object.fromEntrie
 
 function diaSemana(data?: string): number | null {
   if (!data) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(data)) return null;
   const t = Date.parse(`${data}T12:00:00-03:00`);
   if (Number.isNaN(t)) return null;
   return new Date(t).getUTCDay();
+}
+
+/** Turnos reais; o horário final é o fim do expediente, não um início disponível. */
+export function turnosDoBarbeiro(nome: string, data: string): [string, string][] {
+  const dow = diaSemana(data);
+  if (dow === null) return [];
+  return AGENDA_SEMANA[nome]?.[dow] ?? [];
 }
 
 export function horariosDoBarbeiro(nome: string, data?: string): string[] {

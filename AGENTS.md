@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Use `src/lib/duracao.ts` as the shared source of truth for minute-accurate booking availability and turn fitting; booking and rescheduling must apply the same rules.
