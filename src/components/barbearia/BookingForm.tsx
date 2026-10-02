@@ -3,13 +3,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2 } from "lucide-react";
 import { SERVICOS, BARBEIROS } from "@/lib/barbearia";
 import { useCatalogo } from "@/lib/useCatalogo";
-import { horariosDoBarbeiro, salvarId, POLITICA_CANCELAMENTO } from "@/lib/horarios";
+import { salvarId, POLITICA_CANCELAMENTO } from "@/lib/horarios";
 import {
   criarAgendamento,
   listarHorariosOcupados,
 } from "@/lib/agendamentos.functions";
 import { formatarData, linkWhatsApp } from "@/lib/notificacoes";
-import { duracaoServico, horariosBloqueados, type Reserva } from "@/lib/duracao";
+import { duracaoServico, horariosDisponiveis, minutosDeTexto, type Reserva } from "@/lib/duracao";
 
 
 
@@ -81,14 +81,12 @@ export function BookingForm({
     };
   }, [barbeiro, data, buscarOcupados]);
 
-  const horarios = horariosDoBarbeiro(profissional.nome, data || undefined);
-  const duracao = duracaoServico(selecionado?.nome ?? servico);
-  const ocupados = horariosBloqueados(horarios, reservas, duracao);
-  const livres = horarios.filter((h) => !ocupados.includes(h));
+  const duracao = minutosDeTexto(selecionado?.tempo ?? "") || duracaoServico(servico);
+  const livres = data ? horariosDisponiveis(profissional.nome, data, reservas, duracao) : [];
 
   useEffect(() => {
-    if (hora && ocupados.includes(hora)) setHora("");
-  }, [ocupados, hora]);
+    if (hora && !livres.includes(hora)) setHora("");
+  }, [livres, hora]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -237,24 +235,23 @@ export function BookingForm({
         </span>
         {!data ? (
           <p className="text-sm text-muted-foreground">Escolha a data para ver os horários livres.</p>
+        ) : carregando ? (
+          <p className="text-sm text-muted-foreground">Verificando horários…</p>
         ) : livres.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Nenhum horário livre com {profissional.nome} nesta data.
           </p>
         ) : (
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-            {horarios.map((h) => {
-              const bloqueado = ocupados.includes(h);
+            {livres.map((h) => {
               return (
                 <button
                   key={h}
                   type="button"
-                  disabled={bloqueado || carregando}
+                  disabled={carregando}
                   onClick={() => setHora(h)}
                   className={`rounded-sm border px-2 py-2 text-sm transition-colors ${
-                    bloqueado
-                      ? "cursor-not-allowed border-border/50 bg-secondary/40 text-muted-foreground/50 line-through"
-                      : hora === h
+                    hora === h
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border bg-secondary text-muted-foreground hover:border-primary hover:text-foreground"
                   }`}
