@@ -74,14 +74,18 @@ export function useAvisoAgendamento(
         if (somAtivo) tocar();
         if (document.visibilityState === "hidden" && "Notification" in window && Notification.permission === "granted") {
           for (const reserva of novasReservas) {
-            const notificacao = new Notification(`Nova reserva · ${reserva.barbeiro}`, {
-              body: `${reserva.nome} · ${reserva.servico} · ${reserva.data.split("-").reverse().join("/")} às ${reserva.hora}`,
-              tag: `reserva-${reserva.id}`,
-            });
-            notificacao.onclick = () => {
-              window.focus();
-              notificacao.close();
-            };
+            try {
+              const notificacao = new Notification(`Nova reserva · ${reserva.barbeiro}`, {
+                body: `${reserva.nome} · ${reserva.servico} · ${reserva.data.split("-").reverse().join("/")} às ${reserva.hora}`,
+                tag: `reserva-${reserva.id}`,
+              });
+              notificacao.onclick = () => {
+                window.focus();
+                notificacao.close();
+              };
+            } catch {
+              // Alguns navegadores não permitem notificações via página, mesmo com permissão.
+            }
           }
         }
       }
