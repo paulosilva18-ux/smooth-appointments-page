@@ -33,6 +33,8 @@ import {
   RefreshCw,
   Volume2,
   VolumeX,
+  Bell,
+  BellOff,
   Scissors,
   Trash2,
   Users,
@@ -203,13 +205,24 @@ function AdminPage() {
               </p>
             </div>
           </div>
-          <span
-            className="text-stone-300"
-            title={aviso.somAtivo ? "Avisos sonoros ativos" : "O navegador libera o som após a primeira interação com a página"}
-            aria-label={aviso.somAtivo ? "Avisos sonoros ativos" : "Som aguardando liberação do navegador"}
-          >
-            {aviso.somAtivo ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-          </span>
+          <div className="flex items-center gap-2">
+            {aviso.permissao === "default" ? (
+              <button type="button" onClick={aviso.ativarNotificacoes} title="Permitir avisos do navegador quando esta aba estiver em segundo plano" className={btn}>
+                <span className="flex items-center gap-2"><Bell className="h-4 w-4" /> Ativar notificações</span>
+              </button>
+            ) : aviso.permissao === "granted" ? (
+              <span title="Notificações do navegador ativas enquanto o painel estiver aberto" aria-label="Notificações do navegador ativas" className="text-amber-500"><Bell className="h-4 w-4" /></span>
+            ) : (
+              <span title={aviso.permissao === "denied" ? "Notificações bloqueadas. Permita-as nas configurações deste site no navegador." : "Notificações indisponíveis neste navegador ou conexão."} aria-label="Notificações do navegador indisponíveis" className="text-stone-500"><BellOff className="h-4 w-4" /></span>
+            )}
+            <span
+              className="text-stone-300"
+              title={aviso.somAtivo ? "Avisos sonoros ativos" : "O navegador libera o som após a primeira interação com a página"}
+              aria-label={aviso.somAtivo ? "Avisos sonoros ativos" : "Som aguardando liberação do navegador"}
+            >
+              {aviso.somAtivo ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+            </span>
+          </div>
           <button
             className={btn}
             onClick={async () => {
