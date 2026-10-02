@@ -56,23 +56,33 @@ export function useAvisoAgendamento(
     conhecidos.current = atuais;
   }, [agendamentos, escopo, somAtivo, tocar]);
 
-  useEffect(() => () => {
-    void audio.current?.close();
+  useEffect(() => {
+    let montado = true;
+    const liberarSom = () => {
+      try {
+        audio.current ??= new AudioContext();
+        void audio.current.resume().then(() => {
+          if (montado) setSomAtivo(audio.current?.state === "running");
+        }).catch(() => {
+          if (montado) setSomAtivo(false);
+        });
+      } catch {
+        if (montado) setSomAtivo(false);
+      }
+    };
+
+    // Tenta iniciar imediatamente; se o navegador impedir, qualquer interação libera o áudio.
+    liberarSom();
+    document.addEventListener("pointerdown", liberarSom);
+    document.addEventListener("keydown", liberarSom);
+    return () => {
+      montado = false;
+      document.removeEventListener("pointerdown", liberarSom);
+      document.removeEventListener("keydown", liberarSom);
+      void audio.current?.close();
+      audio.current = null;
+    };
   }, []);
 
-  const ativarSom = useCallback(async () => {
-    if (somAtivo) {
-      setSomAtivo(false);
-      return;
-    }
-    try {
-      audio.current ??= new AudioContext();
-      await audio.current.resume();
-      setSomAtivo(audio.current.state === "running");
-    } catch {
-      setSomAtivo(false);
-    }
-  }, [somAtivo]);
-
-  return { ativarSom, somAtivo, novas, limparNovas: () => setNovas(0) };
+  return { somAtivo, novas, limparNovas: () => setNovas(0) };
 }
