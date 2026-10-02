@@ -105,15 +105,15 @@ function AdminPage() {
   const [filtroBarbeiro, setFiltroBarbeiro] = useState<string>("");
 
   const { data: agenda, refetch } = useQuery({
-    queryKey: ["admin-agenda", perfil?.slug, filtroBarbeiro],
-    queryFn: () => doAgenda({ data: { barbeiro: filtroBarbeiro || null } }),
+    queryKey: ["admin-agenda", perfil?.slug],
+    queryFn: () => doAgenda({ data: { barbeiro: null } }),
     enabled: Boolean(perfil),
     refetchOnWindowFocus: false,
     refetchInterval: 10000,
   });
   const aviso = useAvisoAgendamento(
     perfil ? agenda?.agendamentos : undefined,
-    `${perfil?.slug ?? ""}:${filtroBarbeiro}`,
+    perfil?.slug ?? "",
   );
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -240,8 +240,8 @@ function AdminPage() {
           setDia={setDia}
           filtroBarbeiro={filtroBarbeiro}
           setFiltroBarbeiro={setFiltroBarbeiro}
-          agendamentos={agendamentos}
-          bloqueios={bloqueios}
+          agendamentos={filtroBarbeiro ? agendamentos.filter((a) => a.barbeiro === filtroBarbeiro) : agendamentos}
+          bloqueios={filtroBarbeiro ? bloqueios.filter((b) => b.barbeiro === filtroBarbeiro) : bloqueios}
           barbeiros={barbeiros}
           refetch={refetch}
         />
