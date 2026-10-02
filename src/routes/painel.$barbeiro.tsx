@@ -13,6 +13,7 @@ import {
 import { nomePorSlug, precoDoServico, moeda, formatarData } from "@/lib/painel";
 import { SERVICOS, BARBEIROS } from "@/lib/barbearia";
 import { horariosDoBarbeiro } from "@/lib/horarios";
+import { duracaoServico, horariosDisponiveis } from "@/lib/duracao";
 import { classesStatus, rotuloStatus, statusDoDia, useHojeIso } from "@/lib/statusDia";
 import {
   Scissors,
@@ -192,8 +193,6 @@ function PainelBarbeiro() {
     );
   }
 
-  const horarios = horariosDoBarbeiro(nome);
-
   return (
     <main className="min-h-screen bg-[#141414] text-stone-100">
       <header className="border-b border-white/10 bg-[#1b1b1b]">
@@ -295,7 +294,7 @@ function PainelBarbeiro() {
                                 onChange={(e) => setNovaHora(e.target.value)}
                                 className="rounded-lg border border-white/10 bg-[#141414] px-3 py-2 text-sm text-white"
                               >
-                                {horarios.map((h) => (
+                                {horariosDisponiveis(nome, novaData, agendamentos.filter((r) => r.id !== a.id && r.data === novaData), duracaoServico(a.servico)).map((h) => (
                                   <option key={h} value={h}>
                                     {h}
                                   </option>

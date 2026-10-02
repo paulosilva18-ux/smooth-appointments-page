@@ -18,6 +18,7 @@ import {
   removerBarbeiro,
 } from "@/lib/admin.functions";
 import { horariosDoBarbeiro } from "@/lib/horarios";
+import { duracaoServico, horariosDisponiveis } from "@/lib/duracao";
 import { formatarData, moeda, precoDoServico } from "@/lib/painel";
 import { classesStatus, rotuloStatus, statusDoDia, useHojeIso } from "@/lib/statusDia";
 import {
@@ -388,7 +389,11 @@ function AgendaSecao({
                   value={novaHora}
                   onChange={(e) => setNovaHora(e.target.value)}
                 >
-                  {horariosDoBarbeiro(a.barbeiro, novaData || a.data).map((h) => (
+                  {horariosDisponiveis(a.barbeiro, novaData || a.data,
+                    [...agendamentos.filter((r) => r.id !== a.id && r.barbeiro === a.barbeiro && r.data === (novaData || a.data)),
+                      ...bloqueios.filter((b) => b.barbeiro === a.barbeiro && b.data === (novaData || a.data)).map((b) => ({
+                        hora: b.hora ?? "00:00", servico: b.hora ? "Bloqueado (30 min)" : "Bloqueado (24 h)",
+                      }))], duracaoServico(a.servico)).map((h) => (
                     <option key={h} value={h}>
                       {h}
                     </option>
