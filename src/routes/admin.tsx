@@ -266,6 +266,7 @@ function AdminPage() {
 type Agendamento = {
   id: string;
   nome: string;
+  telefone: string | null;
   servico: string;
   barbeiro: string;
   data: string;
