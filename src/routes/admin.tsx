@@ -29,6 +29,7 @@ import {
   Filter,
   LogOut,
   Lock,
+  Phone,
   Plus,
   RefreshCw,
   Volume2,
@@ -265,6 +266,7 @@ function AdminPage() {
 type Agendamento = {
   id: string;
   nome: string;
+  telefone: string | null;
   servico: string;
   barbeiro: string;
   data: string;
@@ -387,6 +389,17 @@ function AgendaSecao({
                 <p className="text-sm text-stone-400">
                   {a.servico} {perfilAdmin && <span className="text-amber-500">· {a.barbeiro}</span>}
                 </p>
+                {a.telefone && (
+                  <a
+                    href={`https://wa.me/55${a.telefone.replace(/\D/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 inline-flex items-center gap-1 text-sm text-emerald-400 hover:underline"
+                  >
+                    <Phone className="h-3.5 w-3.5" />
+                    {a.telefone}
+                  </a>
+                )}
               </div>
               <div className="flex gap-2">
                 <button

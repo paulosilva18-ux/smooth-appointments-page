@@ -88,7 +88,7 @@ export const agendaAdmin = createServerFn({ method: "POST" })
 
     let q = supabaseAdmin
       .from("agendamentos")
-      .select("id, nome, servico, barbeiro, data, hora, created_at")
+      .select("id, nome, telefone, servico, barbeiro, data, hora, created_at")
       .order("data", { ascending: true })
       .order("hora", { ascending: true });
     if (barbeiro) q = q.eq("barbeiro", barbeiro);
@@ -148,7 +148,7 @@ export const remarcarAdmin = createServerFn({ method: "POST" })
       .eq("id", data.id);
     if (!perfil.admin) q = q.eq("barbeiro", perfil.nome);
     const { data: row, error } = await q
-      .select("id, nome, servico, barbeiro, data, hora, created_at")
+      .select("id, nome, telefone, servico, barbeiro, data, hora, created_at")
       .maybeSingle();
     if (error) {
       if (error.code === "23505") return { ok: false as const, motivo: "ocupado" as const };

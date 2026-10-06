@@ -55,7 +55,7 @@ export const agendaDoBarbeiro = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("agendamentos")
-      .select("id, nome, servico, barbeiro, data, hora, created_at")
+      .select("id, nome, telefone, servico, barbeiro, data, hora, created_at")
       .eq("barbeiro", nome)
       .order("data", { ascending: true })
       .order("hora", { ascending: true });
@@ -95,7 +95,7 @@ export const remarcarComoBarbeiro = createServerFn({ method: "POST" })
       .update({ data: data.data, hora: data.hora })
       .eq("id", data.id)
       .eq("barbeiro", nome)
-      .select("id, nome, servico, barbeiro, data, hora, created_at")
+      .select("id, nome, telefone, servico, barbeiro, data, hora, created_at")
       .maybeSingle();
     if (error) {
       if (error.code === "23505") return { ok: false as const, motivo: "ocupado" as const };

@@ -29,6 +29,7 @@ import {
   VolumeX,
   Bell,
   BellOff,
+  Phone,
 } from "lucide-react";
 
 export const Route = createFileRoute("/painel/$barbeiro")({
@@ -314,6 +315,17 @@ function PainelBarbeiro() {
                           <p className="text-sm text-stone-400">
                             {a.servico} · {formatarData(a.data)} às {a.hora}
                           </p>
+                          {a.telefone && (
+                            <a
+                              href={`https://wa.me/55${a.telefone.replace(/\D/g, "")}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1 inline-flex items-center gap-1 text-sm text-emerald-400 hover:underline"
+                            >
+                              <Phone className="h-3.5 w-3.5" />
+                              {a.telefone}
+                            </a>
+                          )}
                         </div>
                         <div className="flex items-center gap-2">
                           {remarcandoId === a.id ? (
@@ -399,6 +411,17 @@ function PainelBarbeiro() {
                       <p className="text-sm text-stone-400">
                         {a.servico} · {formatarData(a.data)} às {a.hora}
                       </p>
+                      {a.telefone && (
+                        <a
+                          href={`https://wa.me/55${a.telefone.replace(/\D/g, "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 inline-flex items-center gap-1 text-sm text-emerald-400 hover:underline"
+                        >
+                          <Phone className="h-3.5 w-3.5" />
+                          {a.telefone}
+                        </a>
+                      )}
                     </div>
                   ))}
                 </div>
