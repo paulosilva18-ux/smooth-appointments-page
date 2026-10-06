@@ -29,6 +29,7 @@ import {
   Filter,
   LogOut,
   Lock,
+  Phone,
   Plus,
   RefreshCw,
   Volume2,
