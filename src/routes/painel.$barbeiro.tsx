@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -85,6 +85,11 @@ function PainelBarbeiro() {
     status?.autenticado ? agendaData?.agendamentos : undefined,
     `${barbeiro}:${status?.autenticado ?? false}`,
   );
+  const [agoraTs, setAgoraTs] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setAgoraTs(Date.now()), 5000);
+    return () => clearInterval(t);
+  }, []);
 
   if (!nome) {
     return (
@@ -142,12 +147,20 @@ function PainelBarbeiro() {
   };
 
   const hojeCor = useHojeIso();
-  const agora = new Date();
-  const hojeIso = agora.toISOString().split("T")[0] ?? "";
+  const agora = new Date(agoraTs);
+  const hojeIso = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}`;
+  const minAgora = agora.getHours() * 60 + agora.getMinutes();
+  const fimMin = (a: { hora: string; servico: string }) => {
+    const [h, m] = a.hora.split(":").map(Number);
+    return (h ?? 0) * 60 + (m ?? 0) + duracaoServico(a.servico);
+  };
+  const concluido = (a: { data: string; hora: string; servico: string }) =>
+    a.data < hojeIso || (a.data === hojeIso && fimMin(a) <= minAgora);
 
   const agendamentos = agendaData?.agendamentos ?? [];
-  const futuros = agendamentos.filter((a) => a.data > hojeIso || (a.data === hojeIso && a.hora >= agora.toTimeString().slice(0, 5)));
-  const passados = agendamentos.filter((a) => !futuros.includes(a));
+  const chave = (a: { data: string; hora: string }) => `${a.data} ${a.hora}`;
+  const futuros = agendamentos.filter((a) => !concluido(a)).sort((x, y) => chave(x).localeCompare(chave(y)));
+  const passados = agendamentos.filter((a) => concluido(a)).sort((x, y) => chave(y).localeCompare(chave(x)));
 
   const faturamentoHoje = agendamentos
     .filter((a) => a.data === hojeIso)
