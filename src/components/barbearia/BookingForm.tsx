@@ -173,7 +173,7 @@ export function BookingForm({
           className={fieldClass}
         />
         <p className="mt-2 text-xs text-muted-foreground">
-          Enviamos a confirmação na hora e um lembrete 1h30 antes do atendimento.
+          Enviamos a confirmação na hora e um lembrete 1 hora antes do atendimento.
         </p>
       </div>
 
@@ -320,7 +320,7 @@ export function BookingForm({
           </dl>
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
             {reservaConfirmada.confirmacaoEnviada
-              ? "A confirmação foi enviada ao seu WhatsApp. Você receberá um lembrete 1h30 antes."
+              ? "A confirmação foi enviada ao seu WhatsApp. Você receberá um lembrete 1 hora antes."
               : "Anote o horário acima. Seu agendamento já está garantido."}
           </p>
         </div>
