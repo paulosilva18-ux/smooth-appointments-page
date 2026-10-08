@@ -402,10 +402,10 @@ function PainelBarbeiro() {
             <div>
               <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
                 <Clock className="h-5 w-5 text-stone-500" />
-                Histórico
+                Concluídos
               </h2>
               {passados.length === 0 ? (
-                <p className="text-stone-500">Nenhum agendamento anterior.</p>
+                <p className="text-stone-500">Nenhum atendimento concluído.</p>
               ) : (
                 <div className="grid gap-3 opacity-70">
                   {passados.map((a) => (
@@ -415,10 +415,8 @@ function PainelBarbeiro() {
                     >
                       <p className="flex flex-wrap items-center gap-2 font-semibold text-white">
                         {a.nome}
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${rotuloStatus(statusDoDia(a.data, hojeCor)).classe}`}
-                        >
-                          {rotuloStatus(statusDoDia(a.data, hojeCor)).texto}
+                        <span className="flex items-center gap-1 rounded-full bg-stone-700 px-2 py-0.5 text-[11px] font-medium text-stone-200">
+                          <CheckCircle2 className="h-3 w-3" /> Concluído
                         </span>
                       </p>
                       <p className="text-sm text-stone-400">
