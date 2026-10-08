@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -85,6 +85,11 @@ function PainelBarbeiro() {
     status?.autenticado ? agendaData?.agendamentos : undefined,
     `${barbeiro}:${status?.autenticado ?? false}`,
   );
+  const [agoraTs, setAgoraTs] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setAgoraTs(Date.now()), 5000);
+    return () => clearInterval(t);
+  }, []);
 
   if (!nome) {
     return (
@@ -142,12 +147,20 @@ function PainelBarbeiro() {
   };
 
   const hojeCor = useHojeIso();
-  const agora = new Date();
-  const hojeIso = agora.toISOString().split("T")[0] ?? "";
+  const agora = new Date(agoraTs);
+  const hojeIso = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}`;
+  const minAgora = agora.getHours() * 60 + agora.getMinutes();
+  const fimMin = (a: { hora: string; servico: string }) => {
+    const [h, m] = a.hora.split(":").map(Number);
+    return (h ?? 0) * 60 + (m ?? 0) + duracaoServico(a.servico);
+  };
+  const concluido = (a: { data: string; hora: string; servico: string }) =>
+    a.data < hojeIso || (a.data === hojeIso && fimMin(a) <= minAgora);
 
   const agendamentos = agendaData?.agendamentos ?? [];
-  const futuros = agendamentos.filter((a) => a.data > hojeIso || (a.data === hojeIso && a.hora >= agora.toTimeString().slice(0, 5)));
-  const passados = agendamentos.filter((a) => !futuros.includes(a));
+  const chave = (a: { data: string; hora: string }) => `${a.data} ${a.hora}`;
+  const futuros = agendamentos.filter((a) => !concluido(a)).sort((x, y) => chave(x).localeCompare(chave(y)));
+  const passados = agendamentos.filter((a) => concluido(a)).sort((x, y) => chave(y).localeCompare(chave(x)));
 
   const faturamentoHoje = agendamentos
     .filter((a) => a.data === hojeIso)
@@ -389,10 +402,10 @@ function PainelBarbeiro() {
             <div>
               <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
                 <Clock className="h-5 w-5 text-stone-500" />
-                Histórico
+                Concluídos
               </h2>
               {passados.length === 0 ? (
-                <p className="text-stone-500">Nenhum agendamento anterior.</p>
+                <p className="text-stone-500">Nenhum atendimento concluído.</p>
               ) : (
                 <div className="grid gap-3 opacity-70">
                   {passados.map((a) => (
@@ -402,10 +415,8 @@ function PainelBarbeiro() {
                     >
                       <p className="flex flex-wrap items-center gap-2 font-semibold text-white">
                         {a.nome}
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${rotuloStatus(statusDoDia(a.data, hojeCor)).classe}`}
-                        >
-                          {rotuloStatus(statusDoDia(a.data, hojeCor)).texto}
+                        <span className="flex items-center gap-1 rounded-full bg-stone-700 px-2 py-0.5 text-[11px] font-medium text-stone-200">
+                          <CheckCircle2 className="h-3 w-3" /> Concluído
                         </span>
                       </p>
                       <p className="text-sm text-stone-400">
