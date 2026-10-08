@@ -77,16 +77,16 @@ export function mensagemConfirmacaoCliente(d: DadosAviso): string {
     "Endereço: Avenida Mário Leite, 1 — Vila Operária, Escada/PE",
     "",
     "Não precisa aguardar confirmação: o horário já está reservado na agenda.",
-    "Vamos te lembrar 1h30 antes do atendimento.",
+    "Vamos te lembrar 1 hora antes do atendimento.",
   ].join("\n");
 }
 
-/** Lembrete enviado automaticamente 1h30 antes do atendimento. */
+/** Lembrete enviado automaticamente 1 hora antes do atendimento. */
 export function mensagemLembreteCliente(d: DadosAviso): string {
   return [
     `⏰ *Lembrete do seu horário*`,
     "",
-    `Olá, ${d.nome}! Faltam 1h30 para o seu atendimento.`,
+    `Olá, ${d.nome}! Falta 1 hora para o seu atendimento.`,
     "",
     `Serviço: ${d.servico}`,
     `Barbeiro: ${d.barbeiro}`,

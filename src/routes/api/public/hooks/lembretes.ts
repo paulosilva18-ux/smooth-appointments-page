@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { instanteAgendamento } from "@/lib/horarios";
 import { mensagemLembreteCliente } from "@/lib/notificacoes";
 
-const ANTECEDENCIA_MIN = 90;
+const ANTECEDENCIA_MIN = 60;
 const TOLERANCIA_MIN = 15;
 
 async function processar() {
