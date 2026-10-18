@@ -13,4 +13,4 @@
 - Use a shared browser-side booking-alert hook in both administrative views; frequent polling preserves server-side access scoping, while audio automatically unlocks on the first permitted browser gesture.
 - Keep browser notification permission and new-booking detection in the shared alert hook; this keeps both panels scoped to their existing authorized agenda feeds and avoids duplicate initial alerts.
 - Scheduled reminders use a server-only response helper that authenticates before database access and skips unconfigured providers; this isolates background failures and prevents unauthenticated privileged processing.
-- Share revenue calculations and summary display across both administrative entry points using their existing authorized agenda feeds; this keeps period totals consistent without widening access or changing stored records.
+- Share integer-cent revenue calculations and service breakdowns across both administrative entry points using existing authorized agenda feeds and historical booking prices; this keeps totals consistent without changing records or widening access.
