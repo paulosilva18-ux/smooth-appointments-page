@@ -9,4 +9,5 @@
 - [x] Painéis atualizados automaticamente a cada 3 segundos e som liberado automaticamente quando o navegador permitir
 - [x] Notificações do navegador para novas reservas com o painel aberto em segundo plano, mediante permissão
 - [ ] Cliente precisa conectar a conta do WhatsApp Cloud API (Meta) para os envios saírem de verdade
+- [x] Atualizar os turnos semanais de Fabrício e verificar disponibilidade flexível por duração, preservando registros
 - [x] Tratar indisponibilidade da rotina de lembretes sem erro 500 e impedir processamento sem autenticação
