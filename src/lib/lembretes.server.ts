@@ -23,7 +23,8 @@ export async function responderLembretes(
   processar: () => Promise<number>,
 ): Promise<Response> {
   if (!configuracao.segredo) {
-    return Response.json({ ok: false, motivo: "rotina_nao_configurada" }, { status: 503 });
+    // An inactive scheduler is an expected no-op, not a page-level failure.
+    return Response.json({ ok: false, enviados: 0, motivo: "rotina_nao_configurada" });
   }
   const auth = request.headers.get("authorization") ?? "";
   if (!auth.startsWith("Bearer ") || !(await segredoIgual(auth.slice(7), configuracao.segredo))) {
@@ -38,8 +39,8 @@ export async function responderLembretes(
     // Do not log booking data, credentials, or upstream response bodies.
     console.warn("Lembretes: processamento indisponível; tentar novamente mais tarde.");
     return Response.json(
-      { ok: false, motivo: "processamento_indisponivel" },
-      { status: 503, headers: { "Retry-After": "60" } },
+      { ok: false, motivo: "processamento_indisponivel", tentarNovamenteEmSegundos: 60 },
+      { headers: { "Cache-Control": "no-store" } },
     );
   }
 }

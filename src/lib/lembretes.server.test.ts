@@ -9,7 +9,8 @@ describe("scheduled reminders", () => {
   it("does not access bookings when the scheduler secret is missing", async () => {
     const processar = vi.fn();
     const res = await responderLembretes(request(), { provedorConfigurado: true }, processar);
-    expect(res.status).toBe(503);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: false, enviados: 0, motivo: "rotina_nao_configurada" });
     expect(processar).not.toHaveBeenCalled();
   });
   it("rejects unauthorized calls before accessing bookings", async () => {
@@ -26,9 +27,9 @@ describe("scheduled reminders", () => {
   });
   it("reports database failures as retryable without exposing details", async () => {
     const res = await responderLembretes(request(), { segredo: "test-cron", provedorConfigurado: true }, async () => { throw new Error("private upstream details"); });
-    expect(res.status).toBe(503);
-    expect(res.headers.get("Retry-After")).toBe("60");
-    expect(await res.json()).toEqual({ ok: false, motivo: "processamento_indisponivel" });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
+    expect(await res.json()).toEqual({ ok: false, motivo: "processamento_indisponivel", tentarNovamenteEmSegundos: 60 });
   });
   it("returns the actual processed count on success", async () => {
     const res = await responderLembretes(request(), { segredo: "test-cron", provedorConfigurado: true }, async () => 2);
