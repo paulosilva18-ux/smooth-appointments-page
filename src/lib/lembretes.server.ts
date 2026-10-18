@@ -1,5 +1,5 @@
 type ConfiguracaoLembretes = {
-  segredo?: string;
+  segredo?: string | undefined;
   provedorConfigurado: boolean;
 };
 
@@ -12,7 +12,7 @@ async function segredoIgual(recebido: string, esperado: string) {
   const bytesA = new Uint8Array(a);
   const bytesB = new Uint8Array(b);
   let diferenca = 0;
-  for (let i = 0; i < bytesA.length; i++) diferenca |= bytesA[i] ^ bytesB[i];
+  for (let i = 0; i < bytesA.length; i++) diferenca |= (bytesA[i] ?? 0) ^ (bytesB[i] ?? 0);
   return diferenca === 0;
 }
 
