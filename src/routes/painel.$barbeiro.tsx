@@ -15,6 +15,7 @@ import { SERVICOS, BARBEIROS } from "@/lib/barbearia";
 import { duracaoServico, horariosDisponiveis } from "@/lib/duracao";
 import { classesStatus, rotuloStatus, statusDoDia, useHojeIso } from "@/lib/statusDia";
 import { useAvisoAgendamento } from "@/lib/useAvisoAgendamento";
+import { ResumoFaturamento } from "@/components/barbearia/ResumoFaturamento";
 import {
   Scissors,
   Calendar,
@@ -162,18 +163,6 @@ function PainelBarbeiro() {
   const futuros = agendamentos.filter((a) => !concluido(a)).sort((x, y) => chave(x).localeCompare(chave(y)));
   const passados = agendamentos.filter((a) => concluido(a)).sort((x, y) => chave(y).localeCompare(chave(x)));
 
-  const faturamentoHoje = agendamentos
-    .filter((a) => a.data === hojeIso)
-    .reduce((s, a) => s + precoDoServico(a.servico), 0);
-  const seteDiasAtras = new Date(agora);
-  seteDiasAtras.setDate(seteDiasAtras.getDate() - 6);
-  const faturamentoSemana = agendamentos
-    .filter((a) => a.data >= seteDiasAtras.toISOString().split("T")[0]!)
-    .reduce((s, a) => s + precoDoServico(a.servico), 0);
-  const faturamentoMes = agendamentos
-    .filter((a) => a.data.startsWith(hojeIso.slice(0, 7)))
-    .reduce((s, a) => s + precoDoServico(a.servico), 0);
-
   const porServico: Record<string, number> = {};
   agendamentos.forEach((a) => {
     porServico[a.servico] = (porServico[a.servico] ?? 0) + precoDoServico(a.servico);
@@ -270,6 +259,9 @@ function PainelBarbeiro() {
       </header>
 
       <div className="mx-auto max-w-5xl p-6">
+        <div className="mb-6">
+          <ResumoFaturamento atendimentos={agendamentos} />
+        </div>
         {aviso.novas > 0 && (
           <div role="alert" className="mb-5 flex items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200">
             <span>{aviso.novas} novo(s) agendamento(s) na sua agenda.</span>
@@ -472,21 +464,6 @@ function PainelBarbeiro() {
 
         {aba === "faturamento" && (
           <section className="space-y-8">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-xl border border-white/10 bg-[#1b1b1b] p-5">
-                <p className="text-sm text-stone-400">Hoje</p>
-                <p className="mt-1 text-2xl font-bold text-white">{moeda(faturamentoHoje)}</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-[#1b1b1b] p-5">
-                <p className="text-sm text-stone-400">Últimos 7 dias</p>
-                <p className="mt-1 text-2xl font-bold text-white">{moeda(faturamentoSemana)}</p>
-              </div>
-              <div className="rounded-xl border border-white/10 bg-[#1b1b1b] p-5">
-                <p className="text-sm text-stone-400">Mês atual</p>
-                <p className="mt-1 text-2xl font-bold text-white">{moeda(faturamentoMes)}</p>
-              </div>
-            </div>
-
             <div>
               <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
                 <DollarSign className="h-5 w-5 text-amber-500" />
