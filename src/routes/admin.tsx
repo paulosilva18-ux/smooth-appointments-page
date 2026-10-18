@@ -19,7 +19,7 @@ import {
 } from "@/lib/admin.functions";
 import { horariosDoBarbeiro } from "@/lib/horarios";
 import { duracaoServico, horariosDisponiveis } from "@/lib/duracao";
-import { formatarData, moeda, precoDoServico } from "@/lib/painel";
+import { formatarData, moeda, precoDoServicoEmCentavos } from "@/lib/painel";
 import { classesStatus, rotuloStatus, statusDoDia, useHojeIso } from "@/lib/statusDia";
 import { useAvisoAgendamento } from "@/lib/useAvisoAgendamento";
 import { ResumoFaturamento } from "@/components/barbearia/ResumoFaturamento";
@@ -321,7 +321,7 @@ function AgendaSecao({
     [agendamentos, dia],
   );
   const bloqueiosDoDia = bloqueios.filter((b) => b.data === dia);
-  const faturamentoDia = doDia.reduce((s, a) => s + precoDoServico(a.servico), 0);
+  const valorAgendadoDia = doDia.reduce((s, a) => s + (precoDoServicoEmCentavos(a.servico) ?? 0), 0) / 100;
 
   return (
     <section className="space-y-4">
@@ -363,7 +363,7 @@ function AgendaSecao({
           </span>
         </button>
         <p className="ml-auto text-sm text-stone-400">
-          {doDia.length} agendamento(s) · {moeda(faturamentoDia)}
+          {doDia.length} agendamento(s) · Valor agendado: {moeda(valorAgendadoDia)}
         </p>
       </div>
 
