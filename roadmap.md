@@ -11,4 +11,4 @@
 - [ ] Cliente precisa conectar a conta do WhatsApp Cloud API (Meta) para os envios saírem de verdade
 - [x] Atualizar os turnos semanais de Fabrício e verificar disponibilidade flexível por duração, preservando registros
 - [x] Tratar indisponibilidade da rotina de lembretes sem erro 500 e impedir processamento sem autenticação
-- [ ] Exibir faturamento diário, semanal e mensal nos painéis dos dois barbeiros, com atualização automática e registros preservados
+- [x] Exibir faturamento diário, semanal e mensal nos painéis dos dois barbeiros, com atualização automática e registros preservados
