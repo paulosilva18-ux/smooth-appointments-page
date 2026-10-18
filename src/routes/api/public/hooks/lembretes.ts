@@ -23,10 +23,11 @@ async function processar() {
 
   let enviados = 0;
   for (const r of rows ?? []) {
+    if (!r.telefone) continue;
     const faltamMin = (instanteAgendamento(r.data, r.hora) - agora) / 60000;
     if (faltamMin > ANTECEDENCIA_MIN || faltamMin < ANTECEDENCIA_MIN - TOLERANCIA_MIN) continue;
     const res = await enviarWhatsApp(
-      r.telefone!,
+      r.telefone,
       mensagemLembreteCliente({
         nome: r.nome,
         servico: r.servico ?? "",
@@ -50,20 +51,14 @@ export const Route = createFileRoute("/api/public/hooks/lembretes")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const segredo = process.env["CRON_SECRET"];
-        if (segredo) {
-          const auth = request.headers.get("authorization") ?? "";
-          if (auth.replace("Bearer ", "") !== segredo) {
-            return new Response("Unauthorized", { status: 401 });
-          }
-        }
-        try {
-          const enviados = await processar();
-          return Response.json({ ok: true, enviados });
-        } catch (e) {
-          console.error("lembretes:", e);
-          return Response.json({ ok: false }, { status: 500 });
-        }
+        const { responderLembretes } = await import("@/lib/lembretes.server");
+        return responderLembretes(request, {
+          segredo: process.env["CRON_SECRET"],
+          provedorConfigurado: Boolean(
+            (process.env["WHATSAPP_TOKEN"] && process.env["WHATSAPP_PHONE_ID"]) ||
+            (process.env["TWILIO_ACCOUNT_SID"] && process.env["TWILIO_AUTH_TOKEN"] && process.env["TWILIO_WHATSAPP_FROM"]),
+          ),
+        }, processar);
       },
     },
   },
