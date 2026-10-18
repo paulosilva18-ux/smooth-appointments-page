@@ -22,6 +22,7 @@ import { duracaoServico, horariosDisponiveis } from "@/lib/duracao";
 import { formatarData, moeda, precoDoServico } from "@/lib/painel";
 import { classesStatus, rotuloStatus, statusDoDia, useHojeIso } from "@/lib/statusDia";
 import { useAvisoAgendamento } from "@/lib/useAvisoAgendamento";
+import { ResumoFaturamento } from "@/components/barbearia/ResumoFaturamento";
 import {
   AlertCircle,
   Ban,
@@ -324,6 +325,7 @@ function AgendaSecao({
 
   return (
     <section className="space-y-4">
+      <ResumoFaturamento atendimentos={agendamentos} />
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-white/10 bg-[#1b1b1b] p-4">
         <div>
           <label className="mb-1 flex items-center gap-2 text-xs uppercase text-stone-400">
