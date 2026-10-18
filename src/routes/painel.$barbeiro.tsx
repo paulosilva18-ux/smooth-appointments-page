@@ -10,12 +10,13 @@ import {
   cancelarComoBarbeiro,
   remarcarComoBarbeiro,
 } from "@/lib/painel.functions";
-import { nomePorSlug, precoDoServico, moeda, formatarData } from "@/lib/painel";
+import { nomePorSlug, formatarData } from "@/lib/painel";
 import { SERVICOS, BARBEIROS } from "@/lib/barbearia";
 import { duracaoServico, horariosDisponiveis } from "@/lib/duracao";
 import { classesStatus, rotuloStatus, statusDoDia, useHojeIso } from "@/lib/statusDia";
 import { useAvisoAgendamento } from "@/lib/useAvisoAgendamento";
-import { ResumoFaturamento } from "@/components/barbearia/ResumoFaturamento";
+import { ResumoFaturamento, FaturamentoPorServico } from "@/components/barbearia/ResumoFaturamento";
+import { calcularFaturamento } from "@/lib/faturamento";
 import {
   Scissors,
   Calendar,
@@ -162,11 +163,6 @@ function PainelBarbeiro() {
   const chave = (a: { data: string; hora: string }) => `${a.data} ${a.hora}`;
   const futuros = agendamentos.filter((a) => !concluido(a)).sort((x, y) => chave(x).localeCompare(chave(y)));
   const passados = agendamentos.filter((a) => concluido(a)).sort((x, y) => chave(y).localeCompare(chave(x)));
-
-  const porServico: Record<string, number> = {};
-  agendamentos.forEach((a) => {
-    porServico[a.servico] = (porServico[a.servico] ?? 0) + precoDoServico(a.servico);
-  });
 
   if (!status?.autenticado) {
     return (
@@ -464,34 +460,7 @@ function PainelBarbeiro() {
 
         {aba === "faturamento" && (
           <section className="space-y-8">
-            <div>
-              <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
-                <DollarSign className="h-5 w-5 text-amber-500" />
-                Faturamento por serviço
-              </h2>
-              {Object.keys(porServico).length === 0 ? (
-                <p className="text-stone-500">Nenhum agendamento registrado.</p>
-              ) : (
-                <div className="overflow-hidden rounded-xl border border-white/10">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-[#1b1b1b] text-stone-400">
-                      <tr>
-                        <th className="px-4 py-3">Serviço</th>
-                        <th className="px-4 py-3">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/10 bg-[#141414]">
-                      {Object.entries(porServico).map(([servico, total]) => (
-                        <tr key={servico}>
-                          <td className="px-4 py-3 text-white">{servico}</td>
-                          <td className="px-4 py-3 font-medium text-amber-500">{moeda(total)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+            <FaturamentoPorServico resumo={calcularFaturamento(agendamentos, agoraTs)} />
           </section>
         )}
       </div>
