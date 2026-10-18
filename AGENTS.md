@@ -12,3 +12,4 @@
 - Use `src/lib/duracao.ts` as the shared source of truth for minute-accurate booking availability and turn fitting; booking and rescheduling must apply the same rules.
 - Use a shared browser-side booking-alert hook in both administrative views; frequent polling preserves server-side access scoping, while audio automatically unlocks on the first permitted browser gesture.
 - Keep browser notification permission and new-booking detection in the shared alert hook; this keeps both panels scoped to their existing authorized agenda feeds and avoids duplicate initial alerts.
+- Scheduled reminders use a server-only response helper that authenticates before database access and skips unconfigured providers; this isolates background failures and prevents unauthenticated privileged processing.
