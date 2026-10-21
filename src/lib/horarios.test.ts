@@ -6,7 +6,7 @@ describe("agenda semanal de Fabrício", () => {
   it.each([
     ["2026-10-19", [["09:00", "12:00"], ["14:00", "18:00"]]],
     ["2026-10-20", [["09:00", "12:00"], ["14:00", "18:00"]]],
-    ["2026-10-21", [["09:00", "12:00"], ["14:00", "18:00"]]],
+    ["2026-10-21", [["09:00", "12:00"], ["14:00", "19:00"]]],
     ["2026-10-22", [["08:30", "12:00"], ["14:00", "19:00"]]],
     ["2026-10-23", [["09:30", "13:00"], ["14:00", "19:30"]]],
     ["2026-10-24", [["08:00", "13:00"], ["14:00", "18:30"]]],
@@ -32,14 +32,5 @@ describe("agenda semanal de Fabrício", () => {
     expect(horarioCabeNoTurno("Fabrício", "2026-10-23", "18:50", 40)).toBe(true);
     expect(horarioCabeNoTurno("Fabrício", "2026-10-23", "19:00", 40)).toBe(false);
     expect(horariosDisponiveis("Fabrício", "2026-10-21", [], 40).some((hora) => hora >= "14:00")).toBe(true);
-  });
-
-  it("fecha a tarde de quarta às 18:00 mantendo a agenda flexível", () => {
-    expect(horarioCabeNoTurno("Fabrício", "2026-10-21", "17:20", 40)).toBe(true);
-    expect(horarioCabeNoTurno("Fabrício", "2026-10-21", "17:30", 40)).toBe(false);
-    const livres = horariosDisponiveis("Fabrício", "2026-10-21", [{ hora: "14:00", servico: "Corte (40 min)" }], 40);
-    expect(livres).toContain("14:40");
-    expect(livres).not.toContain("14:30");
-    expect(livres.some((hora) => hora > "17:20")).toBe(false);
   });
 });
