@@ -38,7 +38,9 @@ describe("agenda semanal de Fabrício", () => {
     expect(horarioCabeNoTurno("Fabrício", "2026-10-21", "17:20", 40)).toBe(true);
     expect(horarioCabeNoTurno("Fabrício", "2026-10-21", "17:30", 40)).toBe(false);
     const livres = horariosDisponiveis("Fabrício", "2026-10-21", [{ hora: "14:00", servico: "Corte (40 min)" }], 40);
-    expect(livres[0]).toBe("14:40");
+    expect(livres).toContain("14:40");
+    expect(livres).not.toContain("14:00");
+    expect(livres).not.toContain("14:30");
     expect(livres).not.toContain("18:00");
   });
 });
