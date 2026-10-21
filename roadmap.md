@@ -13,3 +13,4 @@
 - [x] Tratar indisponibilidade da rotina de lembretes sem erro 500 e impedir processamento sem autenticação
 - [x] Exibir faturamento diário, semanal e mensal nos painéis dos dois barbeiros, com atualização automática e registros preservados
 - [x] Garantir somas precisas em centavos e disponibilizar faturamento por serviço nos painéis, com testes e conferência visual
+- [x] Ajustar a grade de Fabrício para seg/ter/qua 09–12 e 14–18, qui 08:30–12 e 14–19, sex 09:30–13 e 14–19:30, sáb 08–13 e 14–18:30, mantendo a agenda flexível
