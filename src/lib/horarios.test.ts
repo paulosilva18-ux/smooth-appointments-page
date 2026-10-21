@@ -6,7 +6,7 @@ describe("agenda semanal de Fabrício", () => {
   it.each([
     ["2026-10-19", [["09:00", "12:00"], ["14:00", "18:00"]]],
     ["2026-10-20", [["09:00", "12:00"], ["14:00", "18:00"]]],
-    ["2026-10-21", [["09:00", "12:00"]]],
+    ["2026-10-21", [["09:00", "12:00"], ["14:00", "19:00"]]],
     ["2026-10-22", [["08:30", "12:00"], ["14:00", "19:00"]]],
     ["2026-10-23", [["09:30", "13:00"], ["14:00", "19:30"]]],
     ["2026-10-24", [["08:00", "13:00"], ["14:00", "18:30"]]],
@@ -31,6 +31,6 @@ describe("agenda semanal de Fabrício", () => {
     expect(horarioCabeNoTurno("Fabrício", "2026-10-23", "12:30", 40)).toBe(false);
     expect(horarioCabeNoTurno("Fabrício", "2026-10-23", "18:50", 40)).toBe(true);
     expect(horarioCabeNoTurno("Fabrício", "2026-10-23", "19:00", 40)).toBe(false);
-    expect(horariosDisponiveis("Fabrício", "2026-10-21", [], 40).some((hora) => hora >= "12:00")).toBe(false);
+    expect(horariosDisponiveis("Fabrício", "2026-10-21", [], 40).some((hora) => hora >= "14:00")).toBe(true);
   });
 });
