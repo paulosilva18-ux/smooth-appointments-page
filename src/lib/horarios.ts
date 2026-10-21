@@ -47,7 +47,7 @@ function diaSemana(data?: string): number | null {
   return new Date(t).getUTCDay();
 }
 
-/** Turnos reais; o horário final é o fim do expediente, não um início disponível. */
+/** Turnos reais; a permissão para iniciar no encerramento é aplicada em duracao.ts. */
 export function turnosDoBarbeiro(nome: string, data: string): [string, string][] {
   const dow = diaSemana(data);
   if (dow === null) return [];
@@ -55,11 +55,18 @@ export function turnosDoBarbeiro(nome: string, data: string): [string, string][]
 }
 
 /**
- * Último início aceito no fechamento do turno: o serviço começa no horário de
- * encerramento e termina depois dele. Configurado por barbeiro e dia (0 = domingo).
+ * Limite inclusivo de início no último turno: o serviço pode terminar depois
+ * do encerramento. Configurado por barbeiro e dia (0 = domingo).
  */
 const ULTIMO_INICIO: Record<string, Record<number, string>> = {
-  "Fabrício": { 3: "18:00" },
+  "Fabrício": {
+    1: "18:00",
+    2: "18:00",
+    3: "18:00",
+    4: "19:00",
+    5: "19:30",
+    6: "18:30",
+  },
 };
 
 export function ultimoInicio(nome: string, data: string): string | null {
