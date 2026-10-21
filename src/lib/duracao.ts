@@ -1,5 +1,5 @@
 import { SERVICOS } from "@/lib/barbearia";
-import { turnosDoBarbeiro } from "@/lib/horarios";
+import { turnosDoBarbeiro, ultimoInicio } from "@/lib/horarios";
 
 /** Converte textos como "1 h 30 min" ou "40 min" em minutos. */
 export function minutosDeTexto(texto: string): number {
@@ -41,6 +41,8 @@ export function minutosParaHora(minutos: number): string {
 export function horarioCabeNoTurno(barbeiro: string, data: string, hora: string, duracao: number): boolean {
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(hora) || !Number.isFinite(duracao) || duracao <= 0) return false;
   const inicio = horaParaMinutos(hora);
+  // 18:00 na quarta: último horário aceito, mesmo terminando após o fechamento.
+  if (ultimoInicio(barbeiro, data) === hora) return true;
   return turnosDoBarbeiro(barbeiro, data).some(([a, b]) =>
     inicio >= horaParaMinutos(a) && inicio + duracao <= horaParaMinutos(b),
   );
@@ -59,6 +61,8 @@ export function horariosDisponiveis(
     for (let minuto = horaParaMinutos(a); minuto < horaParaMinutos(b); minuto += 30) {
       candidatos.add(minuto);
     }
+    // O fechamento pode ser o último início, quando o barbeiro liberou essa faixa.
+    candidatos.add(horaParaMinutos(b));
   }
   for (const reserva of reservas) {
     const fim = horaParaMinutos(reserva.hora) + duracaoServico(reserva.servico);

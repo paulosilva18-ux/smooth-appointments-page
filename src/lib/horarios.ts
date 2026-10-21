@@ -54,6 +54,20 @@ export function turnosDoBarbeiro(nome: string, data: string): [string, string][]
   return AGENDA_SEMANA[nome]?.[dow] ?? [];
 }
 
+/**
+ * Último início aceito no fechamento do turno: o serviço começa no horário de
+ * encerramento e termina depois dele. Configurado por barbeiro e dia (0 = domingo).
+ */
+const ULTIMO_INICIO: Record<string, Record<number, string>> = {
+  "Fabrício": { 3: "18:00" },
+};
+
+export function ultimoInicio(nome: string, data: string): string | null {
+  const extra = ULTIMO_INICIO[nome]?.[diaSemana(data) ?? -1];
+  if (!extra) return null;
+  return turnosDoBarbeiro(nome, data).some(([, fim]) => fim === extra) ? extra : null;
+}
+
 export function horariosDoBarbeiro(nome: string, data?: string): string[] {
   const semana = AGENDA_SEMANA[nome];
   if (!semana) return HORARIOS;
