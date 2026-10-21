@@ -19,7 +19,7 @@ export function duracaoServico(servico: string): number {
   const detalhe = servico.match(/\(([^)]*)\)/)?.[1];
   const duracaoSalva = detalhe ? minutosDeTexto(detalhe) : 0;
   if (duracaoSalva > 0) return duracaoSalva;
-  const nome = servico.split("(")[0]!.trim().toLowerCase();
+  const nome = (servico.split("(")[0] ?? "").trim().toLowerCase();
   const exato = SERVICOS.find((s) => s.nome.toLowerCase() === nome);
   if (exato) return minutosDeTexto(exato.tempo) || 30;
   const doTexto = minutosDeTexto(servico);
@@ -41,14 +41,16 @@ export function minutosParaHora(minutos: number): string {
 export function horarioCabeNoTurno(barbeiro: string, data: string, hora: string, duracao: number): boolean {
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(hora) || !Number.isFinite(duracao) || duracao <= 0) return false;
   const inicio = horaParaMinutos(hora);
-  // 18:00 na quarta: último horário aceito, mesmo terminando após o fechamento.
-  if (ultimoInicio(barbeiro, data) === hora) return true;
-  return turnosDoBarbeiro(barbeiro, data).some(([a, b]) =>
-    inicio >= horaParaMinutos(a) && inicio + duracao <= horaParaMinutos(b),
-  );
+  const limiteFinal = ultimoInicio(barbeiro, data);
+  return turnosDoBarbeiro(barbeiro, data).some(([a, b]) => {
+    if (inicio < horaParaMinutos(a)) return false;
+    // Apenas o último turno permite começar até seu limite, mesmo terminando depois.
+    if (limiteFinal === b) return inicio <= horaParaMinutos(b);
+    return inicio + duracao <= horaParaMinutos(b);
+  });
 }
 
-/** Grade regular mais os términos exatos dos atendimentos, sempre dentro do turno. */
+/** Grade regular mais os términos exatos, respeitando os limites de início de cada turno. */
 export function horariosDisponiveis(
   barbeiro: string,
   data: string,
