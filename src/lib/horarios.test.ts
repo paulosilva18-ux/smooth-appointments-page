@@ -101,9 +101,23 @@ describe("agenda semanal de Fabrício", () => {
     expect(horarioCabeNoTurno("Fabrício", "2026-10-25", "18:00", 40)).toBe(false);
   });
 
+  it.each([
+    ["2026-10-19", [["10:00", "12:00"], ["15:00", "18:00"]]],
+    ["2026-10-20", [["10:00", "12:00"], ["15:00", "18:00"]]],
+    ["2026-10-21", [["10:00", "12:00"], ["15:00", "18:00"]]],
+    ["2026-10-22", [["10:00", "12:00"], ["15:00", "18:00"]]],
+    ["2026-10-23", [["09:30", "12:00"], ["15:00", "18:00"]]],
+    ["2026-10-24", [["10:00", "12:00"], ["14:00", "18:00"]]],
+    ["2026-10-25", []],
+  ])("aplica os turnos de Victor em %s", (data, turnos) => {
+    expect(turnosDoBarbeiro("Victor Paz", data as string)).toEqual(turnos);
+  });
+
   it.each(["2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24"])("não altera os limites de Victor em %s", (data) => {
+    expect(horarioCabeNoTurno("Victor Paz", data, "18:20", 40)).toBe(false);
     expect(horarioCabeNoTurno("Victor Paz", data, "19:00", 40)).toBe(false);
-    expect(horarioCabeNoTurno("Victor Paz", data, "18:30", 40)).toBe(false);
-    expect(horarioCabeNoTurno("Victor Paz", data, "18:20", 40)).toBe(true);
+    expect(horarioCabeNoTurno("Victor Paz", data, "17:20", 40)).toBe(true);
+    expect(horarioCabeNoTurno("Victor Paz", data, "15:30", 40)).toBe(true);
+    expect(horarioCabeNoTurno("Victor Paz", data, "13:00", 40)).toBe(false);
   });
 });
