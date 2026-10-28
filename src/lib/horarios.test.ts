@@ -117,6 +117,7 @@ describe("agenda semanal de Fabrício", () => {
     expect(horarioCabeNoTurno("Victor Paz", data, "18:20", 40)).toBe(false);
     expect(horarioCabeNoTurno("Victor Paz", data, "19:00", 40)).toBe(false);
     expect(horarioCabeNoTurno("Victor Paz", data, "17:20", 40)).toBe(true);
-    expect(horarioCabeNoTurno("Victor Paz", data, "14:30", 40)).toBe(true);
+    expect(horarioCabeNoTurno("Victor Paz", data, "15:30", 40)).toBe(true);
+    expect(horarioCabeNoTurno("Victor Paz", data, "13:00", 40)).toBe(false);
   });
 });
