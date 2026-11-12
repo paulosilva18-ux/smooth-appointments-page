@@ -16,8 +16,10 @@ export const SLUG_NOME: Record<string, string> = {
 };
 
 export function sessionConfig() {
+  const password = process.env["SESSION_SECRET"];
+  if (!password) throw new Error("Sessão do painel não configurada.");
   return {
-    password: process.env["SESSION_SECRET"]!,
+    password,
     name: "fb-painel",
     maxAge: 60 * 60 * 12,
     cookie: { httpOnly: true, secure: true, sameSite: "lax" as const, path: "/" },
@@ -38,24 +40,25 @@ export async function sessaoPainel() {
 export async function exigirBarbeiro(slug: string): Promise<string> {
   const sess = await sessaoPainel();
   const atual = sess.data.barbeiro;
-  if (!atual || atual !== slug || !SLUG_NOME[slug]) {
+  const nome = SLUG_NOME[slug];
+  if (!atual || atual !== slug || !nome) {
     throw new Error("NAO_AUTORIZADO");
   }
-  return SLUG_NOME[slug]!;
+  return nome;
 }
 
 export type Perfil = { slug: string; nome: string; admin: boolean };
 
 /** Resolve o nome do barbeiro pelo slug, preferindo o cadastro no banco. */
 export async function nomeDoSlug(slug: string): Promise<string | null> {
-  if (slug === "admin") return SLUG_NOME["admin"]!;
+  if (slug === "admin") return SLUG_NOME["admin"] ?? null;
   try {
-    const { db, barbeiros } = await import("@/lib/db.server");
-    const { eq } = await import("drizzle-orm");
-    const [data] = await db
-      .select({ nome: barbeiros.nome })
-      .from(barbeiros)
-      .where(eq(barbeiros.slug, slug));
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("barbeiros")
+      .select("nome")
+      .eq("slug", slug)
+      .maybeSingle();
     if (data?.nome) return data.nome;
   } catch {
     /* usa o mapa fixo abaixo */

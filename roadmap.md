@@ -1,5 +1,6 @@
 # Roadmap
 
+- [x] Recuperar a conexão anterior ao GitHub e conferir serviços, horários e painéis sem alterar registros
 - [x] Confirmação automática no WhatsApp do cliente (sem depender do barbeiro)
 - [x] Lembrete automático 1h antes, com o serviço selecionado (rotina a cada 10 min)
 - [x] Campo "Seu WhatsApp" no formulário, abaixo do nome

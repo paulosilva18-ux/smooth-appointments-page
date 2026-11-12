@@ -52,14 +52,15 @@ export const agendaDoBarbeiro = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { exigirBarbeiro } = await import("@/lib/painel.server");
     const nome = await exigirBarbeiro(data.slug);
-    const { db, agendamentos: ag, colunasAgendamento } = await import("@/lib/db.server");
-    const { asc, eq } = await import("drizzle-orm");
-    const rows = await db
-      .select(colunasAgendamento)
-      .from(ag)
-      .where(eq(ag.barbeiro, nome))
-      .orderBy(asc(ag.data), asc(ag.hora));
-    return { nome, agendamentos: rows };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("agendamentos")
+      .select("id, nome, telefone, servico, barbeiro, data, hora, created_at")
+      .eq("barbeiro", nome)
+      .order("data", { ascending: true })
+      .order("hora", { ascending: true });
+    if (error) throw new Error(error.message);
+    return { nome, agendamentos: rows ?? [] };
   });
 
 export const cancelarComoBarbeiro = createServerFn({ method: "POST" })
@@ -67,9 +68,13 @@ export const cancelarComoBarbeiro = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { exigirBarbeiro } = await import("@/lib/painel.server");
     const nome = await exigirBarbeiro(data.slug);
-    const { db, agendamentos: ag } = await import("@/lib/db.server");
-    const { and, eq } = await import("drizzle-orm");
-    await db.delete(ag).where(and(eq(ag.id, data.id), eq(ag.barbeiro, nome)));
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("agendamentos")
+      .delete()
+      .eq("id", data.id)
+      .eq("barbeiro", nome);
+    if (error) throw new Error(error.message);
     return { ok: true as const };
   });
 
@@ -78,24 +83,23 @@ export const remarcarComoBarbeiro = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { exigirBarbeiro } = await import("@/lib/painel.server");
     const nome = await exigirBarbeiro(data.slug);
-    const { db, agendamentos: ag, colunasAgendamento, ehConflito } = await import("@/lib/db.server");
-    const { and, eq } = await import("drizzle-orm");
-    const doBarbeiro = and(eq(ag.id, data.id), eq(ag.barbeiro, nome));
-    const [atual] = await db.select({ servico: ag.servico }).from(ag).where(doBarbeiro);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: atual } = await supabaseAdmin.from("agendamentos")
+      .select("servico").eq("id", data.id).eq("barbeiro", nome).maybeSingle();
     if (!atual) return { ok: false as const, motivo: "inexistente" as const };
     const { horarioCabeNoTurno, duracaoServico } = await import("@/lib/duracao");
     if (!horarioCabeNoTurno(nome, data.data, data.hora, duracaoServico(atual.servico)))
       return { ok: false as const, motivo: "ocupado" as const };
-    let row;
-    try {
-      [row] = await db
-        .update(ag)
-        .set({ data: data.data, hora: data.hora })
-        .where(doBarbeiro)
-        .returning(colunasAgendamento);
-    } catch (e) {
-      if (ehConflito(e)) return { ok: false as const, motivo: "ocupado" as const };
-      throw e;
+    const { data: row, error } = await supabaseAdmin
+      .from("agendamentos")
+      .update({ data: data.data, hora: data.hora })
+      .eq("id", data.id)
+      .eq("barbeiro", nome)
+      .select("id, nome, telefone, servico, barbeiro, data, hora, created_at")
+      .maybeSingle();
+    if (error) {
+      if (error.code === "23505") return { ok: false as const, motivo: "ocupado" as const };
+      throw new Error(error.message);
     }
     if (!row) return { ok: false as const, motivo: "inexistente" as const };
     return { ok: true as const, agendamento: row };
