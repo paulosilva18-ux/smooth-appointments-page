@@ -1,5 +1,6 @@
 import { SERVICOS } from "@/lib/barbearia";
-import { fimInclusivo, turnosDoBarbeiro, ultimoInicio } from "@/lib/horarios";
+import { configuracaoDoBarbeiro, fimInclusivo } from "@/lib/horarios";
+import type { HorarioEditado } from "./agenda-config";
 
 /** Converte textos como "1 h 30 min" ou "40 min" em minutos. */
 export function minutosDeTexto(texto: string): number {
@@ -38,11 +39,12 @@ export function minutosParaHora(minutos: number): string {
   return `${String(Math.floor(minutos / 60)).padStart(2, "0")}:${String(minutos % 60).padStart(2, "0")}`;
 }
 
-export function horarioCabeNoTurno(barbeiro: string, data: string, hora: string, duracao: number): boolean {
+export function horarioCabeNoTurno(barbeiro: string, data: string, hora: string, duracao: number, horarios: HorarioEditado[] = []): boolean {
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(hora) || !Number.isFinite(duracao) || duracao <= 0) return false;
   const inicio = horaParaMinutos(hora);
-  const limiteFinal = ultimoInicio(barbeiro, data);
-  return turnosDoBarbeiro(barbeiro, data).some(([a, b]) => {
+  const config = configuracaoDoBarbeiro(barbeiro, data, horarios);
+  const limiteFinal = config.ultimo_inicio;
+  return config.turnos.some(([a, b]) => {
     if (inicio < horaParaMinutos(a)) return false;
     // Apenas o último turno permite começar até seu limite, mesmo terminando depois.
     if (limiteFinal === b || fimInclusivo(barbeiro, data, b)) return inicio <= horaParaMinutos(b);
@@ -56,8 +58,9 @@ export function horariosDisponiveis(
   data: string,
   reservas: Reserva[],
   duracao: number,
+  horarios: HorarioEditado[] = [],
 ): string[] {
-  const turnos = turnosDoBarbeiro(barbeiro, data);
+  const turnos = configuracaoDoBarbeiro(barbeiro, data, horarios).turnos;
   const candidatos = new Set<number>();
   for (const [a, b] of turnos) {
     for (let minuto = horaParaMinutos(a); minuto < horaParaMinutos(b); minuto += 30) {
@@ -71,7 +74,7 @@ export function horariosDisponiveis(
     if (Number.isFinite(fim)) candidatos.add(fim);
   }
   return [...candidatos].sort((a, b) => a - b).map(minutosParaHora).filter((hora) =>
-    horarioCabeNoTurno(barbeiro, data, hora, duracao) &&
+    horarioCabeNoTurno(barbeiro, data, hora, duracao, horarios) &&
     !reservas.some((r) => conflita(horaParaMinutos(hora), duracao, horaParaMinutos(r.hora), duracaoServico(r.servico))),
   );
 }

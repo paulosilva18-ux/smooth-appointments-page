@@ -113,6 +113,38 @@ export type Database = {
         }
         Relationships: []
       }
+      horarios_barbeiro: {
+        Row: {
+          chave: string
+          slug: string
+          turnos: Json
+          ultimo_inicio: string | null
+          updated_at: string
+        }
+        Insert: {
+          chave: string
+          slug: string
+          turnos?: Json
+          ultimo_inicio?: string | null
+          updated_at?: string
+        }
+        Update: {
+          chave?: string
+          slug?: string
+          turnos?: Json
+          ultimo_inicio?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "horarios_barbeiro_slug_fkey"
+            columns: ["slug"]
+            isOneToOne: false
+            referencedRelation: "barbeiros"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
       servicos: {
         Row: {
           ativo: boolean

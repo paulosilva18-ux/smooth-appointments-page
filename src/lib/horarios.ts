@@ -1,3 +1,5 @@
+import { slugDoNome, type HorarioEditado, type Turno } from "./agenda-config";
+
 /** Gera slots de 30 em 30 min, incluindo o horário final. */
 function faixa(inicio: string, fim: string): string[] {
   const [hi, mi] = inicio.split(":").map(Number) as [number, number];
@@ -101,6 +103,41 @@ export function fimInclusivo(nome: string, data: string, fim: string): boolean {
 const ULTIMO_INICIO_DATAS: Record<string, Record<string, string>> = {
   "Victor Paz": { "2026-11-13": "19:00" },
 };
+
+/** Data editada > exceção original > semana editada > semana original. */
+export function configuracaoDoBarbeiro(nome: string, data: string, horarios: HorarioEditado[] = []) {
+  const slug = slugDoNome(nome);
+  const semana = diaSemana(data);
+  const editada = horarios.find((h) => h.slug === slug && h.chave === data);
+  if (editada) return { turnos: editada.turnos, ultimo_inicio: editada.ultimo_inicio };
+  if (AGENDA_DATAS[nome]?.[data]) return { turnos: turnosDoBarbeiro(nome, data), ultimo_inicio: ultimoInicio(nome, data) };
+  const semanal = horarios.find((h) => h.slug === slug && h.chave === `semana:${semana}`);
+  if (semanal) return { turnos: semanal.turnos, ultimo_inicio: semanal.ultimo_inicio };
+  return { turnos: turnosDoBarbeiro(nome, data), ultimo_inicio: ultimoInicio(nome, data) };
+}
+
+export function semanaDoBarbeiro(nome: string, horarios: HorarioEditado[] = []) {
+  return Array.from({ length: 7 }, (_, dia) => {
+    const chave = `semana:${dia}`;
+    const editada = horarios.find((h) => h.slug === slugDoNome(nome) && h.chave === chave);
+    return {
+      chave,
+      turnos: editada?.turnos ?? AGENDA_SEMANA[nome]?.[dia] ?? [] as Turno[],
+      ultimo_inicio: editada ? editada.ultimo_inicio : ULTIMO_INICIO[nome]?.[dia] ?? null,
+    };
+  });
+}
+
+export function datasEspeciais(nome: string, horarios: HorarioEditado[] = []) {
+  return [...new Set([
+    ...Object.keys(AGENDA_DATAS[nome] ?? {}),
+    ...horarios.filter((h) => h.slug === slugDoNome(nome) && !h.chave.startsWith("semana:")).map((h) => h.chave),
+  ])].sort();
+}
+
+export function gradeDosTurnos(turnos: Turno[]) {
+  return turnos.flatMap(([a, b]) => faixa(a, b));
+}
 
 export function ultimoInicio(nome: string, data: string): string | null {
   const extraData = ULTIMO_INICIO_DATAS[nome]?.[data];

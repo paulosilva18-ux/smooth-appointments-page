@@ -1,5 +1,6 @@
 # Roadmap
 
+- [ ] Adicionar edição independente da semana e de datas específicas nos painéis, aplicar aos agendamentos e remarcações e verificar os dois acessos sem alterar reservas
 - [x] Recuperar a conexão anterior ao GitHub e conferir serviços, horários e painéis sem alterar registros
 - [x] Confirmação automática no WhatsApp do cliente (sem depender do barbeiro)
 - [x] Lembrete automático 1h antes, com o serviço selecionado (rotina a cada 10 min)
