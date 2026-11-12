@@ -79,53 +79,61 @@ export const statusAdmin = createServerFn({ method: "POST" }).handler(async () =
   return { perfil: await perfilAtual() };
 });
 
+async function banco() {
+  const mod = await import("@/lib/db.server");
+  const orm = await import("drizzle-orm");
+  return { ...mod, ...orm };
+}
+
 export const agendaAdmin = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => agendaInput.parse(d))
   .handler(async ({ data }) => {
     const { exigirEscopo } = await import("@/lib/painel.server");
     const { perfil, barbeiro } = await exigirEscopo(data.barbeiro ?? null);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db, agendamentos: ag, bloqueios: bl, barbeiros: br, colunasAgendamento, and, eq, asc } =
+      await banco();
 
-    let q = supabaseAdmin
-      .from("agendamentos")
-      .select("id, nome, telefone, servico, barbeiro, data, hora, created_at")
-      .order("data", { ascending: true })
-      .order("hora", { ascending: true });
-    if (barbeiro) q = q.eq("barbeiro", barbeiro);
-    if (data.data) q = q.eq("data", data.data);
-    const { data: agendamentos, error } = await q;
-    if (error) throw new Error(error.message);
+    const [agendamentos, bloqueios, barbeiros] = await Promise.all([
+      db
+        .select(colunasAgendamento)
+        .from(ag)
+        .where(
+          and(
+            barbeiro ? eq(ag.barbeiro, barbeiro) : undefined,
+            data.data ? eq(ag.data, data.data) : undefined,
+          ),
+        )
+        .orderBy(asc(ag.data), asc(ag.hora)),
+      db
+        .select({ id: bl.id, barbeiro: bl.barbeiro, data: bl.data, hora: bl.hora, motivo: bl.motivo })
+        .from(bl)
+        .where(barbeiro ? eq(bl.barbeiro, barbeiro) : undefined)
+        .orderBy(asc(bl.data)),
+      db
+        .select({
+          id: br.id,
+          slug: br.slug,
+          nome: br.nome,
+          whatsapp: br.whatsapp,
+          display: br.display,
+          ativo: br.ativo,
+        })
+        .from(br)
+        .orderBy(asc(br.createdAt)),
+    ]);
 
-    let qb = supabaseAdmin
-      .from("bloqueios")
-      .select("id, barbeiro, data, hora, motivo")
-      .order("data", { ascending: true });
-    if (barbeiro) qb = qb.eq("barbeiro", barbeiro);
-    const { data: bloqueios } = await qb;
-
-    const { data: barbeiros } = await supabaseAdmin
-      .from("barbeiros")
-      .select("id, slug, nome, whatsapp, display, ativo")
-      .order("created_at", { ascending: true });
-
-    return {
-      perfil,
-      agendamentos: agendamentos ?? [],
-      bloqueios: bloqueios ?? [],
-      barbeiros: barbeiros ?? [],
-    };
+    return { perfil, agendamentos, bloqueios, barbeiros };
   });
 
 export const cancelarAdmin = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => idInput.parse(d))
   .handler(async ({ data }) => {
     const { exigirEscopo } = await import("@/lib/painel.server");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { perfil } = await exigirEscopo(null);
-    let q = supabaseAdmin.from("agendamentos").delete().eq("id", data.id);
-    if (!perfil.admin) q = q.eq("barbeiro", perfil.nome);
-    const { error } = await q;
-    if (error) throw new Error(error.message);
+    const { db, agendamentos: ag, and, eq } = await banco();
+    await db
+      .delete(ag)
+      .where(and(eq(ag.id, data.id), perfil.admin ? undefined : eq(ag.barbeiro, perfil.nome)));
     return { ok: true as const };
   });
 
@@ -133,26 +141,27 @@ export const remarcarAdmin = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => remarcarInput.parse(d))
   .handler(async ({ data }) => {
     const { exigirEscopo } = await import("@/lib/painel.server");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { perfil } = await exigirEscopo(null);
-    const { data: atual } = await supabaseAdmin.from("agendamentos")
-      .select("id, barbeiro, servico").eq("id", data.id).maybeSingle();
+    const { db, agendamentos: ag, colunasAgendamento, ehConflito, and, eq } = await banco();
+    const [atual] = await db
+      .select({ id: ag.id, barbeiro: ag.barbeiro, servico: ag.servico })
+      .from(ag)
+      .where(eq(ag.id, data.id));
     if (!atual || (!perfil.admin && atual.barbeiro !== perfil.nome))
       return { ok: false as const, motivo: "inexistente" as const };
     const { horarioCabeNoTurno, duracaoServico } = await import("@/lib/duracao");
     if (!horarioCabeNoTurno(atual.barbeiro, data.data, data.hora, duracaoServico(atual.servico)))
       return { ok: false as const, motivo: "ocupado" as const };
-    let q = supabaseAdmin
-      .from("agendamentos")
-      .update({ data: data.data, hora: data.hora })
-      .eq("id", data.id);
-    if (!perfil.admin) q = q.eq("barbeiro", perfil.nome);
-    const { data: row, error } = await q
-      .select("id, nome, telefone, servico, barbeiro, data, hora, created_at")
-      .maybeSingle();
-    if (error) {
-      if (error.code === "23505") return { ok: false as const, motivo: "ocupado" as const };
-      throw new Error(error.message);
+    let row;
+    try {
+      [row] = await db
+        .update(ag)
+        .set({ data: data.data, hora: data.hora })
+        .where(and(eq(ag.id, data.id), perfil.admin ? undefined : eq(ag.barbeiro, perfil.nome)))
+        .returning(colunasAgendamento);
+    } catch (e) {
+      if (ehConflito(e)) return { ok: false as const, motivo: "ocupado" as const };
+      throw e;
     }
     if (!row) return { ok: false as const, motivo: "inexistente" as const };
     return { ok: true as const, agendamento: row };
@@ -163,7 +172,7 @@ export const criarBloqueio = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { exigirEscopo } = await import("@/lib/painel.server");
     await exigirEscopo(data.barbeiro);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db, bloqueios } = await banco();
     const linhas: {
       barbeiro: string;
       data: string;
@@ -178,8 +187,7 @@ export const criarBloqueio = createServerFn({ method: "POST" })
           motivo: data.motivo ?? null,
         }));
     if (linhas.length === 0) return { ok: false as const, motivo: "vazio" as const };
-    const { error } = await supabaseAdmin.from("bloqueios").insert(linhas);
-    if (error) throw new Error(error.message);
+    await db.insert(bloqueios).values(linhas);
     return { ok: true as const, total: linhas.length };
   });
 
@@ -188,29 +196,44 @@ export const removerBloqueio = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { exigirEscopo } = await import("@/lib/painel.server");
     const { perfil } = await exigirEscopo(null);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    let q = supabaseAdmin.from("bloqueios").delete().eq("id", data.id);
-    if (!perfil.admin) q = q.eq("barbeiro", perfil.nome);
-    const { error } = await q;
-    if (error) throw new Error(error.message);
+    const { db, bloqueios: bl, and, eq } = await banco();
+    await db
+      .delete(bl)
+      .where(and(eq(bl.id, data.id), perfil.admin ? undefined : eq(bl.barbeiro, perfil.nome)));
     return { ok: true as const };
   });
 
 export const listarCatalogoAdmin = createServerFn({ method: "POST" }).handler(async () => {
   const { exigirAdmin } = await import("@/lib/painel.server");
   await exigirAdmin();
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const [{ data: servicos }, { data: barbeiros }] = await Promise.all([
-    supabaseAdmin
-      .from("servicos")
-      .select("id, nome, categoria, duracao_min, preco, descricao, ativo, ordem")
-      .order("ordem", { ascending: true }),
-    supabaseAdmin
-      .from("barbeiros")
-      .select("id, slug, nome, whatsapp, display, ativo")
-      .order("created_at", { ascending: true }),
+  const { db, servicos: sv, barbeiros: br, asc } = await banco();
+  const [servicos, barbeiros] = await Promise.all([
+    db
+      .select({
+        id: sv.id,
+        nome: sv.nome,
+        categoria: sv.categoria,
+        duracao_min: sv.duracaoMin,
+        preco: sv.preco,
+        descricao: sv.descricao,
+        ativo: sv.ativo,
+        ordem: sv.ordem,
+      })
+      .from(sv)
+      .orderBy(asc(sv.ordem)),
+    db
+      .select({
+        id: br.id,
+        slug: br.slug,
+        nome: br.nome,
+        whatsapp: br.whatsapp,
+        display: br.display,
+        ativo: br.ativo,
+      })
+      .from(br)
+      .orderBy(asc(br.createdAt)),
   ]);
-  return { servicos: servicos ?? [], barbeiros: barbeiros ?? [] };
+  return { servicos, barbeiros };
 });
 
 export const salvarServico = createServerFn({ method: "POST" })
@@ -218,20 +241,18 @@ export const salvarServico = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { exigirAdmin } = await import("@/lib/painel.server");
     await exigirAdmin();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db, servicos, eq } = await banco();
     const payload = {
       nome: data.nome,
       categoria: data.categoria,
-      duracao_min: data.duracao_min,
+      duracaoMin: data.duracao_min,
       preco: data.preco,
       descricao: data.descricao ?? null,
       ativo: data.ativo,
       ordem: data.ordem,
     };
-    const { error } = data.id
-      ? await supabaseAdmin.from("servicos").update(payload).eq("id", data.id)
-      : await supabaseAdmin.from("servicos").insert(payload);
-    if (error) throw new Error(error.message);
+    if (data.id) await db.update(servicos).set(payload).where(eq(servicos.id, data.id));
+    else await db.insert(servicos).values(payload);
     return { ok: true as const };
   });
 
@@ -240,9 +261,8 @@ export const removerServico = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { exigirAdmin } = await import("@/lib/painel.server");
     await exigirAdmin();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("servicos").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
+    const { db, servicos, eq } = await banco();
+    await db.delete(servicos).where(eq(servicos.id, data.id));
     return { ok: true as const };
   });
 
@@ -251,7 +271,7 @@ export const salvarBarbeiro = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { exigirAdmin } = await import("@/lib/painel.server");
     await exigirAdmin();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { db, barbeiros, ehConflito, eq } = await banco();
     const payload = {
       slug: data.slug,
       nome: data.nome,
@@ -259,12 +279,12 @@ export const salvarBarbeiro = createServerFn({ method: "POST" })
       display: data.display,
       ativo: data.ativo,
     };
-    const { error } = data.id
-      ? await supabaseAdmin.from("barbeiros").update(payload).eq("id", data.id)
-      : await supabaseAdmin.from("barbeiros").insert(payload);
-    if (error) {
-      if (error.code === "23505") return { ok: false as const, motivo: "slug" as const };
-      throw new Error(error.message);
+    try {
+      if (data.id) await db.update(barbeiros).set(payload).where(eq(barbeiros.id, data.id));
+      else await db.insert(barbeiros).values(payload);
+    } catch (e) {
+      if (ehConflito(e)) return { ok: false as const, motivo: "slug" as const };
+      throw e;
     }
     return { ok: true as const };
   });
@@ -274,8 +294,7 @@ export const removerBarbeiro = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { exigirAdmin } = await import("@/lib/painel.server");
     await exigirAdmin();
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("barbeiros").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
+    const { db, barbeiros, eq } = await banco();
+    await db.delete(barbeiros).where(eq(barbeiros.id, data.id));
     return { ok: true as const };
   });
