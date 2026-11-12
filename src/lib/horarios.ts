@@ -38,7 +38,7 @@ const AGENDA_DATAS: Record<string, Record<string, [string, string][]>> = {
     "2026-11-20": [["09:00", "13:00"], ["14:00", "20:30"]],
     "2026-11-14": [["08:00", "13:00"], ["14:00", "19:30"]],
     "2026-11-21": [["08:00", "13:00"], ["14:00", "19:30"]],
-    "2026-11-19": [["09:30", "12:00"], ["14:00", "19:30"]],
+    "2026-11-19": [["08:30", "11:00"], ["14:00", "19:30"]],
     "2026-11-22": [["10:00", "13:00"], ["15:00", "18:00"]],
   },
   "Victor Paz": {
@@ -90,9 +90,7 @@ const ULTIMO_INICIO: Record<string, Record<number, string>> = {
 };
 
 /** Turnos da manhã em datas especiais cujo fechamento também é um início marcável. */
-const INICIO_INCLUSIVO_DATAS: Record<string, Record<string, string[]>> = {
-  "Fabrício": { "2026-11-19": ["12:00"] },
-};
+const INICIO_INCLUSIVO_DATAS: Record<string, Record<string, string[]>> = {};
 
 export function fimInclusivo(nome: string, data: string, fim: string): boolean {
   return INICIO_INCLUSIVO_DATAS[nome]?.[data]?.includes(fim) ?? false;

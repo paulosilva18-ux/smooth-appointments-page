@@ -125,17 +125,22 @@ describe("agenda semanal de Fabrício", () => {
     expect(turnosDoBarbeiro("Fabrício", "2026-11-13")).toEqual([["09:00", "13:00"], ["14:00", "20:30"]]);
     expect(horarioCabeNoTurno("Fabrício", "2026-11-20", "20:30", 40)).toBe(true);
     expect(turnosDoBarbeiro("Fabrício", "2026-11-21")).toEqual([["08:00", "13:00"], ["14:00", "19:30"]]);
-    expect(turnosDoBarbeiro("Fabrício", "2026-11-19")).toEqual([["09:30", "12:00"], ["14:00", "19:30"]]);
+    expect(turnosDoBarbeiro("Fabrício", "2026-11-19")).toEqual([["08:30", "11:00"], ["14:00", "19:30"]]);
     expect(turnosDoBarbeiro("Victor Paz", "2026-11-13")).toEqual([["09:00", "13:00"], ["15:00", "19:00"]]);
     expect(turnosDoBarbeiro("Victor Paz", "2026-11-14")).toEqual([["09:00", "12:00"], ["14:00", "19:00"]]);
     expect(turnosDoBarbeiro("Fabrício", "2026-11-27")).toEqual([["09:30", "13:00"], ["14:00", "19:30"]]);
   });
 
-  it("dia 19: último atendimento da manhã às 12:00", () => {
-    expect(horarioCabeNoTurno("Fabrício", "2026-11-19", "12:00", 40)).toBe(true);
-    expect(horarioCabeNoTurno("Fabrício", "2026-11-19", "12:30", 40)).toBe(false);
-    expect(horarioCabeNoTurno("Fabrício", "2026-11-19", "13:30", 40)).toBe(false);
-    expect(horariosDisponiveis("Fabrício", "2026-11-19", [], 40)).toContain("12:00");
+  it("dia 19: manhã das 08:30 às 11:00, último encaixe às 10:00", () => {
+    expect(horarioCabeNoTurno("Fabrício", "2026-11-19", "08:30", 40)).toBe(true);
+    expect(horarioCabeNoTurno("Fabrício", "2026-11-19", "10:00", 40)).toBe(true);
+    expect(horarioCabeNoTurno("Fabrício", "2026-11-19", "10:30", 40)).toBe(false);
+    expect(horarioCabeNoTurno("Fabrício", "2026-11-19", "11:00", 40)).toBe(false);
+    const livres = horariosDisponiveis("Fabrício", "2026-11-19", [], 40);
+    expect(livres).toContain("08:30");
+    expect(livres).toContain("10:00");
+    expect(livres).not.toContain("10:30");
+    expect(livres).toContain("14:00");
   });
 
   it("abre apenas o domingo 22/11", () => {
