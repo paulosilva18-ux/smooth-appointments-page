@@ -127,6 +127,8 @@ describe("agenda semanal de Fabrício", () => {
     expect(turnosDoBarbeiro("Fabrício", "2026-11-21")).toEqual([["08:00", "13:00"], ["14:00", "19:30"]]);
     expect(turnosDoBarbeiro("Fabrício", "2026-11-19")).toEqual([["08:30", "11:00"], ["14:00", "19:30"]]);
     expect(turnosDoBarbeiro("Victor Paz", "2026-11-13")).toEqual([["09:00", "13:00"], ["15:00", "19:00"]]);
+    expect(turnosDoBarbeiro("Victor Paz", "2026-11-19")).toEqual([["09:00", "12:00"], ["15:00", "19:00"]]);
+    expect(turnosDoBarbeiro("Victor Paz", "2026-11-20")).toEqual([["09:00", "12:00"], ["14:00", "19:00"]]);
     expect(turnosDoBarbeiro("Victor Paz", "2026-11-14")).toEqual([["09:00", "12:00"], ["14:00", "19:00"]]);
     expect(turnosDoBarbeiro("Fabrício", "2026-11-27")).toEqual([["09:30", "13:00"], ["14:00", "19:30"]]);
   });
@@ -141,6 +143,12 @@ describe("agenda semanal de Fabrício", () => {
     expect(livres).toContain("10:00");
     expect(livres).not.toContain("10:30");
     expect(livres).toContain("14:00");
+  });
+
+  it("dia 13: último horário de Victor às 19:00, podendo terminar depois", () => {
+    expect(horarioCabeNoTurno("Victor Paz", "2026-11-13", "19:00", 40)).toBe(true);
+    expect(horarioCabeNoTurno("Victor Paz", "2026-11-13", "19:30", 40)).toBe(false);
+    expect(horariosDisponiveis("Victor Paz", "2026-11-13", [], 40)).toContain("19:00");
   });
 
   it("abre apenas o domingo 22/11", () => {

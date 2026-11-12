@@ -43,7 +43,8 @@ const AGENDA_DATAS: Record<string, Record<string, [string, string][]>> = {
   },
   "Victor Paz": {
     "2026-11-13": [["09:00", "13:00"], ["15:00", "19:00"]],
-    "2026-11-20": [["09:00", "13:00"], ["15:00", "19:00"]],
+    "2026-11-19": [["09:00", "12:00"], ["15:00", "19:00"]],
+    "2026-11-20": [["09:00", "12:00"], ["14:00", "19:00"]],
     "2026-11-14": [["09:00", "12:00"], ["14:00", "19:00"]],
     "2026-11-21": [["09:00", "12:00"], ["14:00", "19:00"]],
   },
@@ -96,7 +97,14 @@ export function fimInclusivo(nome: string, data: string, fim: string): boolean {
   return INICIO_INCLUSIVO_DATAS[nome]?.[data]?.includes(fim) ?? false;
 }
 
+/** Último início marcável em datas específicas (o serviço pode terminar depois). */
+const ULTIMO_INICIO_DATAS: Record<string, Record<string, string>> = {
+  "Victor Paz": { "2026-11-13": "19:00" },
+};
+
 export function ultimoInicio(nome: string, data: string): string | null {
+  const extraData = ULTIMO_INICIO_DATAS[nome]?.[data];
+  if (extraData) return extraData;
   const extra = ULTIMO_INICIO[nome]?.[diaSemana(data) ?? -1];
   if (!extra) return null;
   const excecao = AGENDA_DATAS[nome]?.[data];
