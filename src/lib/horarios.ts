@@ -31,6 +31,23 @@ const AGENDA_SEMANA: Record<string, Record<number, [string, string][]>> = {
   },
 };
 
+/** Exceções por data específica (substituem a agenda semanal apenas nesse dia). */
+const AGENDA_DATAS: Record<string, Record<string, [string, string][]>> = {
+  "Fabrício": {
+    "2026-11-13": [["09:00", "13:00"], ["14:00", "20:30"]],
+    "2026-11-20": [["09:00", "13:00"], ["14:00", "20:30"]],
+    "2026-11-14": [["08:00", "13:00"], ["14:00", "19:30"]],
+    "2026-11-21": [["08:00", "13:00"], ["14:00", "19:30"]],
+    "2026-11-19": [["09:30", "12:00"], ["14:00", "19:30"]],
+  },
+  "Victor Paz": {
+    "2026-11-13": [["09:00", "13:00"], ["15:00", "19:00"]],
+    "2026-11-20": [["09:00", "13:00"], ["15:00", "19:00"]],
+    "2026-11-14": [["09:00", "12:00"], ["14:00", "19:00"]],
+    "2026-11-21": [["09:00", "12:00"], ["14:00", "19:00"]],
+  },
+};
+
 /** Grade completa do barbeiro (união de todos os dias) — usada como fallback. */
 export const HORARIOS_POR_BARBEIRO: Record<string, string[]> = Object.fromEntries(
   Object.entries(AGENDA_SEMANA).map(([nome, dias]) => [
@@ -51,6 +68,8 @@ function diaSemana(data?: string): number | null {
 export function turnosDoBarbeiro(nome: string, data: string): [string, string][] {
   const dow = diaSemana(data);
   if (dow === null) return [];
+  const excecao = AGENDA_DATAS[nome]?.[data];
+  if (excecao) return excecao;
   return AGENDA_SEMANA[nome]?.[dow] ?? [];
 }
 
@@ -72,6 +91,9 @@ const ULTIMO_INICIO: Record<string, Record<number, string>> = {
 export function ultimoInicio(nome: string, data: string): string | null {
   const extra = ULTIMO_INICIO[nome]?.[diaSemana(data) ?? -1];
   if (!extra) return null;
+  const excecao = AGENDA_DATAS[nome]?.[data];
+  // Em datas especiais, o fechamento do último turno é o último início marcável.
+  if (excecao) return excecao[excecao.length - 1]?.[1] ?? null;
   return turnosDoBarbeiro(nome, data).some(([, fim]) => fim === extra) ? extra : null;
 }
 
@@ -79,7 +101,9 @@ export function horariosDoBarbeiro(nome: string, data?: string): string[] {
   const semana = AGENDA_SEMANA[nome];
   if (!semana) return HORARIOS;
   const dow = diaSemana(data);
-  if (dow === null) return HORARIOS_POR_BARBEIRO[nome] ?? HORARIOS;
+  if (dow === null || !data) return HORARIOS_POR_BARBEIRO[nome] ?? HORARIOS;
+  const excecao = AGENDA_DATAS[nome]?.[data];
+  if (excecao) return excecao.flatMap(([a, b]) => faixa(a, b));
   return (semana[dow] ?? []).flatMap(([a, b]) => faixa(a, b));
 }
 
