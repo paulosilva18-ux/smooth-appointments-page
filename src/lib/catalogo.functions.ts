@@ -4,18 +4,25 @@ import { createServerFn } from "@tanstack/react-start";
 export const catalogoPublico = createServerFn({ method: "GET" }).handler(async () => {
   const { CATALOGO_PADRAO, formatarPreco, formatarTempo } = await import("@/lib/catalogo");
   try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const [{ data: servicos }, { data: barbeiros }] = await Promise.all([
-      supabaseAdmin
-        .from("servicos")
-        .select("nome, categoria, duracao_min, preco, descricao, ativo, ordem")
-        .eq("ativo", true)
-        .order("ordem", { ascending: true }),
-      supabaseAdmin
-        .from("barbeiros")
-        .select("nome, whatsapp, display, ativo, created_at")
-        .eq("ativo", true)
-        .order("created_at", { ascending: true }),
+    const { db, servicos: sv, barbeiros: br } = await import("@/lib/db.server");
+    const { asc, eq } = await import("drizzle-orm");
+    const [servicos, barbeiros] = await Promise.all([
+      db
+        .select({
+          nome: sv.nome,
+          categoria: sv.categoria,
+          duracao_min: sv.duracaoMin,
+          preco: sv.preco,
+          descricao: sv.descricao,
+        })
+        .from(sv)
+        .where(eq(sv.ativo, true))
+        .orderBy(asc(sv.ordem)),
+      db
+        .select({ nome: br.nome, whatsapp: br.whatsapp, display: br.display })
+        .from(br)
+        .where(eq(br.ativo, true))
+        .orderBy(asc(br.createdAt)),
     ]);
 
     return {

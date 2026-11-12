@@ -6,23 +6,31 @@ const ANTECEDENCIA_MIN = 60;
 const TOLERANCIA_MIN = 15;
 
 async function processar() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { db, agendamentos: ag } = await import("@/lib/db.server");
+  const { and, eq, inArray, isNotNull, isNull } = await import("drizzle-orm");
   const { enviarWhatsApp } = await import("@/lib/whatsapp.server");
 
   const agora = Date.now();
   const hoje = new Date(agora - 3 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const amanha = new Date(agora + 21 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
-  const { data: rows, error } = await supabaseAdmin
-    .from("agendamentos")
-    .select("id, nome, servico, barbeiro, data, hora, telefone, lembrete_enviado_em")
-    .in("data", [hoje, amanha])
-    .is("lembrete_enviado_em", null)
-    .not("telefone", "is", null);
-  if (error) throw new Error(error.message);
+  const rows = await db
+    .select({
+      id: ag.id,
+      nome: ag.nome,
+      servico: ag.servico,
+      barbeiro: ag.barbeiro,
+      data: ag.data,
+      hora: ag.hora,
+      telefone: ag.telefone,
+    })
+    .from(ag)
+    .where(
+      and(inArray(ag.data, [hoje, amanha]), isNull(ag.lembreteEnviadoEm), isNotNull(ag.telefone)),
+    );
 
   let enviados = 0;
-  for (const r of rows ?? []) {
+  for (const r of rows) {
     if (!r.telefone) continue;
     const faltamMin = (instanteAgendamento(r.data, r.hora) - agora) / 60000;
     if (faltamMin > ANTECEDENCIA_MIN || faltamMin < ANTECEDENCIA_MIN - TOLERANCIA_MIN) continue;
@@ -38,10 +46,10 @@ async function processar() {
     ).catch(() => ({ enviado: false }));
     if (res.enviado) {
       enviados += 1;
-      await supabaseAdmin
-        .from("agendamentos")
-        .update({ lembrete_enviado_em: new Date().toISOString() })
-        .eq("id", r.id);
+      await db
+        .update(ag)
+        .set({ lembreteEnviadoEm: new Date().toISOString() })
+        .where(eq(ag.id, r.id));
     }
   }
   return enviados;

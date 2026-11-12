@@ -50,12 +50,12 @@ export type Perfil = { slug: string; nome: string; admin: boolean };
 export async function nomeDoSlug(slug: string): Promise<string | null> {
   if (slug === "admin") return SLUG_NOME["admin"]!;
   try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await supabaseAdmin
-      .from("barbeiros")
-      .select("nome")
-      .eq("slug", slug)
-      .maybeSingle();
+    const { db, barbeiros } = await import("@/lib/db.server");
+    const { eq } = await import("drizzle-orm");
+    const [data] = await db
+      .select({ nome: barbeiros.nome })
+      .from(barbeiros)
+      .where(eq(barbeiros.slug, slug));
     if (data?.nome) return data.nome;
   } catch {
     /* usa o mapa fixo abaixo */
