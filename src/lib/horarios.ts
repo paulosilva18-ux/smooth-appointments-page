@@ -109,11 +109,11 @@ export function configuracaoDoBarbeiro(nome: string, data: string, horarios: Hor
   const slug = slugDoNome(nome);
   const semana = diaSemana(data);
   const editada = horarios.find((h) => h.slug === slug && h.chave === data);
-  if (editada) return { turnos: editada.turnos, ultimo_inicio: editada.ultimo_inicio };
-  if (AGENDA_DATAS[nome]?.[data]) return { turnos: turnosDoBarbeiro(nome, data), ultimo_inicio: ultimoInicio(nome, data) };
+  if (editada) return editada;
+  if (AGENDA_DATAS[nome]?.[data]) return { turnos: turnosDoBarbeiro(nome, data), ultimo_inicio: ultimoInicio(nome, data), extras: [] as string[], retirados: [] as string[] };
   const semanal = horarios.find((h) => h.slug === slug && h.chave === `semana:${semana}`);
-  if (semanal) return { turnos: semanal.turnos, ultimo_inicio: semanal.ultimo_inicio };
-  return { turnos: turnosDoBarbeiro(nome, data), ultimo_inicio: ultimoInicio(nome, data) };
+  if (semanal) return semanal;
+  return { turnos: turnosDoBarbeiro(nome, data), ultimo_inicio: ultimoInicio(nome, data), extras: [] as string[], retirados: [] as string[] };
 }
 
 export function semanaDoBarbeiro(nome: string, horarios: HorarioEditado[] = []) {
@@ -124,6 +124,8 @@ export function semanaDoBarbeiro(nome: string, horarios: HorarioEditado[] = []) 
       chave,
       turnos: editada?.turnos ?? AGENDA_SEMANA[nome]?.[dia] ?? [] as Turno[],
       ultimo_inicio: editada ? editada.ultimo_inicio : ULTIMO_INICIO[nome]?.[dia] ?? null,
+      extras: editada?.extras ?? [],
+      retirados: editada?.retirados ?? [],
     };
   });
 }

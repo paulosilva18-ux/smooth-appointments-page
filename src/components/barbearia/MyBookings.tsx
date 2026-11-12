@@ -16,6 +16,7 @@ import {
 } from "@/lib/agendamentos.functions";
 import { avisarWhatsApp, linkWhatsApp } from "@/lib/notificacoes";
 import { duracaoServico, horariosDisponiveis, type Reserva } from "@/lib/duracao";
+import { useHorarios } from "@/lib/useHorarios";
 
 
 type Agendamento = {
@@ -37,6 +38,7 @@ function formatarData(iso: string) {
 
 export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
   const [itens, setItens] = useState<Agendamento[]>([]);
+  const horarios = useHorarios();
   const [editando, setEditando] = useState<string | null>(null);
   const [novaData, setNovaData] = useState("");
   const [novaHora, setNovaHora] = useState("");
@@ -97,8 +99,8 @@ export function MyBookings({ recarregar = 0 }: { recarregar?: number }) {
     setMensagem(null);
   };
 
-  const livresEdicao = item && novaData
-    ? horariosDisponiveis(item.barbeiro, novaData, reservas, duracaoServico(item.servico))
+  const livresEdicao = item && novaData && horarios.isSuccess
+    ? horariosDisponiveis(item.barbeiro, novaData, reservas, duracaoServico(item.servico), horarios.data)
     : [];
 
   const foraDoPrazoMsg = `Prazo encerrado: só é possível alterar até ${JANELA_CANCELAMENTO_HORAS} h antes. Fale com o barbeiro no WhatsApp.`;

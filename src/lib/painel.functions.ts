@@ -87,8 +87,8 @@ export const remarcarComoBarbeiro = createServerFn({ method: "POST" })
     const { data: atual } = await supabaseAdmin.from("agendamentos")
       .select("servico").eq("id", data.id).eq("barbeiro", nome).maybeSingle();
     if (!atual) return { ok: false as const, motivo: "inexistente" as const };
-    const { horarioCabeNoTurno, duracaoServico } = await import("@/lib/duracao");
-    if (!horarioCabeNoTurno(nome, data.data, data.hora, duracaoServico(atual.servico)))
+    const { conflitoNaAgenda } = await import("./agenda-horarios.server");
+    if (await conflitoNaAgenda(nome, data.data, data.hora, atual.servico, data.id))
       return { ok: false as const, motivo: "ocupado" as const };
     const { data: row, error } = await supabaseAdmin
       .from("agendamentos")

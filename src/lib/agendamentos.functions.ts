@@ -29,18 +29,15 @@ const reagendarInput = idInput.extend({
 /** Bloqueios manuais do barbeiro convertidos em "reservas" de 30 min. */
 async function bloqueiosComoReservas(barbeiro: string, dataDia: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { turnosDoBarbeiro } = await import("@/lib/horarios");
-  const { horaParaMinutos } = await import("@/lib/duracao");
-  const { data: rows } = await supabaseAdmin
+  const { data: rows, error } = await supabaseAdmin
     .from("bloqueios")
     .select("hora")
     .eq("barbeiro", barbeiro)
     .eq("data", dataDia);
+  if (error) throw new Error("Não foi possível consultar os bloqueios.");
   const lista = rows ?? [];
   if (lista.some((r) => !r.hora)) {
-    return turnosDoBarbeiro(barbeiro, dataDia).map(([a, b]) => ({
-      hora: a, servico: `Bloqueado (${Math.max(1, horaParaMinutos(b) - horaParaMinutos(a))} min)`,
-    }));
+    return [{ hora: "00:00", servico: "Bloqueado (24 h)" }];
   }
   return lista
     .filter((r): r is { hora: string } => Boolean(r.hora))
@@ -69,25 +66,8 @@ async function existeConflito(
   servico: string,
   ignorarId?: string,
 ) {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { horaParaMinutos, duracaoServico, horarioCabeNoTurno } = await import("@/lib/duracao");
-  if (!horarioCabeNoTurno(barbeiro, dataDia, hora, duracaoServico(servico))) return true;
-  let q = supabaseAdmin
-    .from("agendamentos")
-    .select("id, hora, servico")
-    .eq("barbeiro", barbeiro)
-    .eq("data", dataDia);
-  if (ignorarId) q = q.neq("id", ignorarId);
-  const { data: rows, error } = await q;
-  if (error) throw new Error(error.message);
-  const bloqueios = await bloqueiosComoReservas(barbeiro, dataDia);
-  const inicio = horaParaMinutos(hora);
-  const dur = duracaoServico(servico);
-  return [...(rows ?? []), ...bloqueios].some((r) => {
-    const i = horaParaMinutos(r.hora);
-    const d = duracaoServico(r.servico ?? "");
-    return inicio < i + d && i < inicio + dur;
-  });
+  const { conflitoNaAgenda } = await import("./agenda-horarios.server");
+  return conflitoNaAgenda(barbeiro, dataDia, hora, servico, ignorarId);
 }
 
 export const criarAgendamento = createServerFn({ method: "POST" })

@@ -43,6 +43,8 @@ export function horarioCabeNoTurno(barbeiro: string, data: string, hora: string,
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(hora) || !Number.isFinite(duracao) || duracao <= 0) return false;
   const inicio = horaParaMinutos(hora);
   const config = configuracaoDoBarbeiro(barbeiro, data, horarios);
+  if (config.retirados.some((h) => conflita(inicio, duracao, horaParaMinutos(h), 30))) return false;
+  if (config.extras.includes(hora)) return true;
   const limiteFinal = config.ultimo_inicio;
   return config.turnos.some(([a, b]) => {
     if (inicio < horaParaMinutos(a)) return false;
@@ -60,8 +62,10 @@ export function horariosDisponiveis(
   duracao: number,
   horarios: HorarioEditado[] = [],
 ): string[] {
-  const turnos = configuracaoDoBarbeiro(barbeiro, data, horarios).turnos;
+  const config = configuracaoDoBarbeiro(barbeiro, data, horarios);
+  const turnos = config.turnos;
   const candidatos = new Set<number>();
+  config.extras.forEach((h) => candidatos.add(horaParaMinutos(h)));
   for (const [a, b] of turnos) {
     for (let minuto = horaParaMinutos(a); minuto < horaParaMinutos(b); minuto += 30) {
       candidatos.add(minuto);

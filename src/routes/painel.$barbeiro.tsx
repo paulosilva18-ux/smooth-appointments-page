@@ -17,6 +17,9 @@ import { classesStatus, rotuloStatus, statusDoDia, useHojeIso } from "@/lib/stat
 import { useAvisoAgendamento } from "@/lib/useAvisoAgendamento";
 import { ResumoFaturamento, FaturamentoPorServico } from "@/components/barbearia/ResumoFaturamento";
 import { calcularFaturamento } from "@/lib/faturamento";
+import { EditorHorarios } from "@/components/barbearia/EditorHorarios";
+import { useHorarios } from "@/lib/useHorarios";
+import { Button } from "@/components/ui/button";
 import {
   Scissors,
   Calendar,
@@ -56,7 +59,9 @@ function PainelBarbeiro() {
 
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
-  const [aba, setAba] = useState<"agenda" | "servicos" | "faturamento">("agenda");
+  const [aba, setAba] = useState<"agenda" | "horarios" | "servicos" | "faturamento">("agenda");
+  const horarios = useHorarios();
+  const hojeCor = useHojeIso();
   const [remarcandoId, setRemarcandoId] = useState<string | null>(null);
   const [novaData, setNovaData] = useState("");
   const [novaHora, setNovaHora] = useState("");
@@ -148,7 +153,6 @@ function PainelBarbeiro() {
     setMsg("Agendamento remarcado.");
   };
 
-  const hojeCor = useHojeIso();
   const agora = new Date(agoraTs);
   const hojeIso = `${agora.getFullYear()}-${String(agora.getMonth() + 1).padStart(2, "0")}-${String(agora.getDate()).padStart(2, "0")}`;
   const minAgora = agora.getHours() * 60 + agora.getMinutes();
@@ -265,18 +269,14 @@ function PainelBarbeiro() {
           </div>
         )}
         <div className="mb-6 flex gap-2 overflow-x-auto">
-          {(["agenda", "servicos", "faturamento"] as const).map((t) => (
-            <button
+          {(["agenda", "horarios", "servicos", "faturamento"] as const).map((t) => (
+            <Button variant={aba === t ? "default" : "outline"}
               key={t}
               onClick={() => setAba(t)}
-              className={`rounded-full px-5 py-2 text-sm font-medium transition ${
-                aba === t
-                  ? "bg-amber-600 text-white"
-                  : "border border-white/10 text-stone-400 hover:text-white"
-              }`}
+              className="shrink-0 px-5"
             >
-              {t === "agenda" ? "Agendamentos" : t === "servicos" ? "Serviços" : "Faturamento"}
-            </button>
+              {t === "agenda" ? "Agendamentos" : t === "horarios" ? "Meus horários" : t === "servicos" ? "Serviços" : "Faturamento"}
+            </Button>
           ))}
         </div>
 
@@ -343,7 +343,7 @@ function PainelBarbeiro() {
                                 onChange={(e) => setNovaHora(e.target.value)}
                                 className="rounded-lg border border-white/10 bg-[#141414] px-3 py-2 text-sm text-white"
                               >
-                                {horariosDisponiveis(nome, novaData, agendamentos.filter((r) => r.id !== a.id && r.data === novaData), duracaoServico(a.servico)).map((h) => (
+                                {horariosDisponiveis(nome, novaData, agendamentos.filter((r) => r.id !== a.id && r.data === novaData), duracaoServico(a.servico), horarios.data).map((h) => (
                                   <option key={h} value={h}>
                                     {h}
                                   </option>
@@ -428,6 +428,8 @@ function PainelBarbeiro() {
             </div>
           </section>
         )}
+
+        {aba === "horarios" && (barbeiro === "fabricio" || barbeiro === "victor") && <EditorHorarios slug={barbeiro} nome={nome} reservas={agendamentos} />}
 
         {aba === "servicos" && (
           <section>

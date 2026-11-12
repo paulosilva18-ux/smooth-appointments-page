@@ -8,6 +8,13 @@
       "when": 1794501475672,
       "tag": "0000_horarios_independentes_barbeiros",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794501665615,
+      "tag": "0001_vagas_extras_e_horarios_retirados",
+      "breakpoints": true
     }
   ]
 }

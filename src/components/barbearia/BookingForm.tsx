@@ -10,6 +10,7 @@ import {
 } from "@/lib/agendamentos.functions";
 import { formatarData, linkWhatsApp } from "@/lib/notificacoes";
 import { duracaoServico, horariosDisponiveis, minutosDeTexto, type Reserva } from "@/lib/duracao";
+import { useHorarios } from "@/lib/useHorarios";
 
 
 
@@ -35,13 +36,14 @@ export function BookingForm({
 }) {
 
   const catalogo = useCatalogo();
+  const horarios = useHorarios();
   const servicos = catalogo.servicos.length ? catalogo.servicos : SERVICOS;
   const barbeiros = catalogo.barbeiros.length ? catalogo.barbeiros : BARBEIROS;
 
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
-  const [servico, setServico] = useState<string>(SERVICOS[0]!.nome);
-  const [barbeiro, setBarbeiro] = useState<string>(BARBEIROS[0]!.nome);
+  const [servico, setServico] = useState<string>(SERVICOS[0]?.nome ?? "");
+  const [barbeiro, setBarbeiro] = useState<string>(BARBEIROS[0]?.nome ?? "");
 
   const [data, setData] = useState("");
   const [hora, setHora] = useState("");
@@ -57,7 +59,7 @@ export function BookingForm({
   const agendar = useServerFn(criarAgendamento);
 
   const selecionado = servicos.find((s) => s.nome === servico);
-  const profissional = barbeiros.find((b) => b.nome === barbeiro) ?? barbeiros[0]!;
+  const profissional = barbeiros.find((b) => b.nome === barbeiro) ?? barbeiros[0] ?? { nome: barbeiro };
 
   useEffect(() => {
     if (!data) {
@@ -82,7 +84,7 @@ export function BookingForm({
   }, [barbeiro, data, buscarOcupados]);
 
   const duracao = minutosDeTexto(selecionado?.tempo ?? "") || duracaoServico(servico);
-  const livres = data ? horariosDisponiveis(profissional.nome, data, reservas, duracao) : [];
+  const livres = data && horarios.isSuccess ? horariosDisponiveis(profissional.nome, data, reservas, duracao, horarios.data) : [];
 
   useEffect(() => {
     if (hora && !livres.includes(hora)) setHora("");
@@ -235,7 +237,9 @@ export function BookingForm({
         </span>
         {!data ? (
           <p className="text-sm text-muted-foreground">Escolha a data para ver os horários livres.</p>
-        ) : carregando ? (
+        ) : horarios.isError ? (
+          <p role="alert" className="text-sm text-destructive">Não foi possível consultar os horários. Tente novamente.</p>
+        ) : carregando || horarios.isPending ? (
           <p className="text-sm text-muted-foreground">Verificando horários…</p>
         ) : livres.length === 0 ? (
           <p className="text-sm text-muted-foreground">

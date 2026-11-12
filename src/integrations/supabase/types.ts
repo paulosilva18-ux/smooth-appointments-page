@@ -116,6 +116,8 @@ export type Database = {
       horarios_barbeiro: {
         Row: {
           chave: string
+          extras: Json
+          retirados: Json
           slug: string
           turnos: Json
           ultimo_inicio: string | null
@@ -123,6 +125,8 @@ export type Database = {
         }
         Insert: {
           chave: string
+          extras?: Json
+          retirados?: Json
           slug: string
           turnos?: Json
           ultimo_inicio?: string | null
@@ -130,6 +134,8 @@ export type Database = {
         }
         Update: {
           chave?: string
+          extras?: Json
+          retirados?: Json
           slug?: string
           turnos?: Json
           ultimo_inicio?: string | null

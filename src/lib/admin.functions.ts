@@ -139,8 +139,8 @@ export const remarcarAdmin = createServerFn({ method: "POST" })
       .select("id, barbeiro, servico").eq("id", data.id).maybeSingle();
     if (!atual || (!perfil.admin && atual.barbeiro !== perfil.nome))
       return { ok: false as const, motivo: "inexistente" as const };
-    const { horarioCabeNoTurno, duracaoServico } = await import("@/lib/duracao");
-    if (!horarioCabeNoTurno(atual.barbeiro, data.data, data.hora, duracaoServico(atual.servico)))
+    const { conflitoNaAgenda } = await import("./agenda-horarios.server");
+    if (await conflitoNaAgenda(atual.barbeiro, data.data, data.hora, atual.servico, data.id))
       return { ok: false as const, motivo: "ocupado" as const };
     let q = supabaseAdmin
       .from("agendamentos")

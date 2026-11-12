@@ -17,7 +17,9 @@ import {
   salvarBarbeiro,
   removerBarbeiro,
 } from "@/lib/admin.functions";
-import { horariosDoBarbeiro } from "@/lib/horarios";
+import { configuracaoDoBarbeiro, gradeDosTurnos } from "@/lib/horarios";
+import { useHorarios } from "@/lib/useHorarios";
+import { EditorHorarios } from "@/components/barbearia/EditorHorarios";
 import { duracaoServico, horariosDisponiveis } from "@/lib/duracao";
 import { formatarData, moeda, precoDoServicoEmCentavos } from "@/lib/painel";
 import { classesStatus, rotuloStatus, statusDoDia, useHojeIso } from "@/lib/statusDia";
@@ -258,6 +260,7 @@ function AdminPage() {
           barbeiros={barbeiros}
           refetch={refetch}
         />
+        {(perfil.slug === "fabricio" || perfil.slug === "victor") && <EditorHorarios slug={perfil.slug} nome={perfil.nome} reservas={agendamentos} />}
         {perfil.admin && <GestaoSecao />}
       </div>
     </main>
@@ -308,6 +311,7 @@ function AgendaSecao({
   const doRemarcar = useServerFn(remarcarAdmin);
   const doBloquear = useServerFn(criarBloqueio);
   const doDesbloquear = useServerFn(removerBloqueio);
+  const horarios = useHorarios();
 
   const [msg, setMsg] = useState<string | null>(null);
   const [remarcandoId, setRemarcandoId] = useState<string | null>(null);
@@ -447,7 +451,7 @@ function AgendaSecao({
                     [...agendamentos.filter((r) => r.id !== a.id && r.barbeiro === a.barbeiro && r.data === (novaData || a.data)),
                       ...bloqueios.filter((b) => b.barbeiro === a.barbeiro && b.data === (novaData || a.data)).map((b) => ({
                         hora: b.hora ?? "00:00", servico: b.hora ? "Bloqueado (30 min)" : "Bloqueado (24 h)",
-                      }))], duracaoServico(a.servico)).map((h) => (
+                      }))], duracaoServico(a.servico), horarios.data).map((h) => (
                     <option key={h} value={h}>
                       {h}
                     </option>
@@ -563,7 +567,9 @@ function ModalBloqueio({
   const [horas, setHoras] = useState<string[]>([]);
   const [motivo, setMotivo] = useState("");
 
-  const grade = horariosDoBarbeiro(barbeiro, data);
+  const horarios = useHorarios();
+  const config = configuracaoDoBarbeiro(barbeiro, data, horarios.data);
+  const grade = [...new Set([...gradeDosTurnos(config.turnos), ...config.extras])].sort();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
