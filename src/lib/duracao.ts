@@ -1,5 +1,5 @@
 import { SERVICOS } from "@/lib/barbearia";
-import { turnosDoBarbeiro, ultimoInicio } from "@/lib/horarios";
+import { fimInclusivo, turnosDoBarbeiro, ultimoInicio } from "@/lib/horarios";
 
 /** Converte textos como "1 h 30 min" ou "40 min" em minutos. */
 export function minutosDeTexto(texto: string): number {
@@ -45,7 +45,7 @@ export function horarioCabeNoTurno(barbeiro: string, data: string, hora: string,
   return turnosDoBarbeiro(barbeiro, data).some(([a, b]) => {
     if (inicio < horaParaMinutos(a)) return false;
     // Apenas o último turno permite começar até seu limite, mesmo terminando depois.
-    if (limiteFinal === b) return inicio <= horaParaMinutos(b);
+    if (limiteFinal === b || fimInclusivo(barbeiro, data, b)) return inicio <= horaParaMinutos(b);
     return inicio + duracao <= horaParaMinutos(b);
   });
 }

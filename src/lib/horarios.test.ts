@@ -130,4 +130,11 @@ describe("agenda semanal de Fabrício", () => {
     expect(turnosDoBarbeiro("Victor Paz", "2026-11-14")).toEqual([["09:00", "12:00"], ["14:00", "19:00"]]);
     expect(turnosDoBarbeiro("Fabrício", "2026-11-27")).toEqual([["09:30", "13:00"], ["14:00", "19:30"]]);
   });
+
+  it("dia 19: último atendimento da manhã às 12:00", () => {
+    expect(horarioCabeNoTurno("Fabrício", "2026-11-19", "12:00", 40)).toBe(true);
+    expect(horarioCabeNoTurno("Fabrício", "2026-11-19", "12:30", 40)).toBe(false);
+    expect(horarioCabeNoTurno("Fabrício", "2026-11-19", "13:30", 40)).toBe(false);
+    expect(horariosDisponiveis("Fabrício", "2026-11-19", [], 40)).toContain("12:00");
+  });
 });

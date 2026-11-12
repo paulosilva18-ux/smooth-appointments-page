@@ -88,6 +88,15 @@ const ULTIMO_INICIO: Record<string, Record<number, string>> = {
   },
 };
 
+/** Turnos da manhã em datas especiais cujo fechamento também é um início marcável. */
+const INICIO_INCLUSIVO_DATAS: Record<string, Record<string, string[]>> = {
+  "Fabrício": { "2026-11-19": ["12:00"] },
+};
+
+export function fimInclusivo(nome: string, data: string, fim: string): boolean {
+  return INICIO_INCLUSIVO_DATAS[nome]?.[data]?.includes(fim) ?? false;
+}
+
 export function ultimoInicio(nome: string, data: string): string | null {
   const extra = ULTIMO_INICIO[nome]?.[diaSemana(data) ?? -1];
   if (!extra) return null;
