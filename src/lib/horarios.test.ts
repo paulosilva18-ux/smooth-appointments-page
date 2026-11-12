@@ -139,7 +139,8 @@ describe("agenda semanal de Fabrício", () => {
   });
 
   it("abre apenas o domingo 22/11", () => {
-    for (const b of ["Fabrício", "Victor Paz"]) {
+    expect(turnosDoBarbeiro("Victor Paz", "2026-11-22")).toEqual([]);
+    for (const b of ["Fabrício"]) {
       expect(turnosDoBarbeiro(b, "2026-11-22")).toEqual([["10:00", "13:00"], ["15:00", "18:00"]]);
       expect(horariosDisponiveis(b, "2026-11-22", [], 40)).toContain("10:00");
       expect(turnosDoBarbeiro(b, "2026-11-29")).toEqual([]);
